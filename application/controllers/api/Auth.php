@@ -24,7 +24,7 @@ class Auth extends MY_Controller {
         $p = $this->post('password'); //Pasword Posted
         
         $kunci = $this->config->item('thekey');
-        $invalidLogin = ['status' => '0','Message'=>'Fail','Responce Message'=>"Inavalid Login"]; //Respon if login invalid
+        $invalidLogin = ['status' => '0','Message'=>'Inavalid Login']; //Respon if login invalid
 
         $query = $this->db->query("CALL usp_AuthenticateUser('".$u."','".$p."')");
         
@@ -38,7 +38,7 @@ class Auth extends MY_Controller {
             $token['exp'] = $date->getTimestamp() + 60*60*5; //To here is to generate token
            
             $token = JWT::encode($token,$kunci ); //This is the output token
-             $output=['status' => '1','Message'=>'Success','Responce Message'=>"Login Success","token"=>$token];
+            $output=['status' => '1','Message'=>'Login Success',"token"=>$token];
             $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
        
     }
