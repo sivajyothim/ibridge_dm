@@ -20,6 +20,8 @@ class Auth extends MY_Controller {
 
     public function login_post()
     {
+        $this->post = file_get_contents('php://input');
+        
         $u = $this->post('username'); //Username Posted
         $p = $this->post('password'); //Pasword Posted
         
