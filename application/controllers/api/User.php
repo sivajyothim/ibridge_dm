@@ -13,7 +13,7 @@ class User extends MY_Controller {
     public function userData_get() {
         $userId = $this->user_data->id;
         if ($userId != "") {
-            $query = $this->db->query("call usp_GetUserRoleClientDetails('" . $userId . "')");
+            $query = $this->db->query("call usp_GetUserRoleClientDetails('" . $userId . "',@errorCode)");
             $result = $query->result_array();
 
             if ($result > 0) {
