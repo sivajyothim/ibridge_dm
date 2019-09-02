@@ -11,14 +11,51 @@ class Main_model extends CI_Model {
     }
 
     public function userdata() {
-        $anji="123";
+        $anji = "123";
         $query = $this->db->query("call usp_GetUserRoleClientDetails('" . $this->user_data->id . "',@errorCode)");
         $result = $query->row();
         return $result;
     }
+    public function upload_files($path, $title, $files)
+    { 
+//        print_r($files);exit;
+        $config = array(
+            'upload_path'   => $path,
+            'allowed_types' => 'jpg|gif|png|mp4',
+            'overwrite'     => 1,                       
+        );
 
-    public function do_upload($userfile, $upload_path, $rename_file = 0) {
-//            echo $upload_path;exit;
+        $this->load->library('upload', $config);
+
+        $images = array();
+
+        foreach ($files['name'] as $key => $image) {
+            $_FILES['images[]']['name']= $files['name'][$key];
+            $_FILES['images[]']['type']= $files['type'][$key];
+            $_FILES['images[]']['tmp_name']= $files['tmp_name'][$key];
+            $_FILES['images[]']['error']= $files['error'][$key];
+            $_FILES['images[]']['size']= $files['size'][$key];
+
+            $fileName = $title .'_'. $image;
+
+            $images[] = $fileName;
+
+            $config['file_name'] = $fileName;
+
+            $this->upload->initialize($config);
+
+            if ($this->upload->do_upload('images[]')) {
+                $this->upload->data();
+            } else {
+                return false;
+            }
+        }
+
+        return $images;
+    }
+
+    public function do_upload_old($userfile, $upload_path, $rename_file = 0) {
+        print_r($userfile);   exit;  
         $config['upload_path'] = $upload_path;
         $config['allowed_types'] = 'jpg|pdf|jpeg|png';
         $config['max_size'] = 0;
@@ -29,21 +66,44 @@ class Main_model extends CI_Model {
         }
 
         $this->load->library('upload', $config);
+        //mutiple file upload code start
+        foreach ($userfile['name'] as $key => $image) {
+            $_FILES['image_file[]']['name']= $userfile['name'][$key];
+            $_FILES['image_file[]']['type']= $userfile['type'][$key];
+            $_FILES['image_file[]']['tmp_name']= $userfile['tmp_name'][$key];
+            $_FILES['image_file[]']['error']= $userfile['error'][$key];
+            $_FILES['image_file[]']['size']= $userfile['size'][$key];
+            $fileName = 'test' .'_'. $image;
+            $images[] = $fileName;
 
-        if (!$this->upload->do_upload($userfile)) {
-            $error = array('error' => $this->upload->display_errors());
-            // $this->session->set_flashdata('message', $error);
-            // redirect('/document/create');
+            $this->upload->initialize($config);
+
+            if ($this->upload->do_upload('images[]')) {
+                $this->upload->data();
+            } else {
+                 $error = array('error' => $this->upload->display_errors());
+
             print_r($error);
-            exit();
-            //$this->load->view('upload_form', $error);
-        } else {
-            $data = array('upload_data' => $this->upload->data());
-            // print_r( $data['upload_data'] );
-            // exit();
-            return( $data['upload_data']['orig_name'] );
-            //$this->load->view('upload_success', $data);
+                return false;
+            }
         }
+        return $images;
+
+        //mutiple file upload code end
+//        if (!$this->upload->do_upload($userfile)) {
+//            $error = array('error' => $this->upload->display_errors());
+//            // $this->session->set_flashdata('message', $error);
+//            // redirect('/document/create');
+//            print_r($error);
+//            exit();
+//            //$this->load->view('upload_form', $error);
+//        } else {
+//            $data = array('upload_data' => $this->upload->data());
+//            // print_r( $data['upload_data'] );
+//            // exit();
+//            return( $data['upload_data']['orig_name'] );
+//            //$this->load->view('upload_success', $data);
+//        }
     }
 
     //This function sends email 

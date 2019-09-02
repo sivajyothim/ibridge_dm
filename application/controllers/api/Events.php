@@ -41,7 +41,7 @@ class Events extends MY_Controller {
         } else {
             $eventId = 0;  //As per SP
         }
-
+        $photoUploadedPath = $vedioUploadedPath = "";
         /* INSERT INTO tblEvents */
         $userId = $this->user_data->id;
 
@@ -71,12 +71,63 @@ class Events extends MY_Controller {
         $newEndDateTime = $this->post('newEndDateTime ');
 
         $isPhotoUploaded = $this->post('isPhotoUploaded'); //1 :data will insert to tblEventServiceData
-        $photoUploadedPath = $this->post('photoUploadedPath');
+        $photoUploadServiceId = $this->post('photoUploadServiceId');
+        $photoEventServiceDataId = $this->post('photoEventServiceDataId');
+
+
+//                   print_r($_FILES);exit;
+        if ($eventId != 0) {
+            $serviceoptedarr = explode(',', $serviceIdsOpted);
+            if (count($serviceoptedarr) > 0) {
+                foreach ($serviceoptedarr as $service_id) {
+                    $photoUploadedPath = "uploads/client_" . sprintf("%02d", $clientId)  . "/event_" . sprintf("%02d", $eventId) . "/service_" . sprintf("%02d", $service_id) . "" . '/';
+                    if (!is_dir($photoUploadedPath)) {
+                        @mkdir($photoUploadedPath, 0777, TRUE);
+                    }
+                }
+            }
+        }
+        if ($isPhotoUploaded == 1 && count($_FILES)) {
+//           print_r($_FILES);
+//           echo count($_FILES['image_file']['name']);exit;
+            if (!empty($_FILES['images']['name'][0])) {
+                $photoUploadedPath = "uploads/client_" . sprintf("%02d", $clientId)  . "/event_" . sprintf("%02d", $eventId) . "/service_" . sprintf("%02d", $photoUploadServiceId) . "" . '/';
+                if (!is_dir($photoUploadedPath)) {
+                    @mkdir($photoUploadedPath, 0777, TRUE);
+                }
+                $title = url_title('image_' . time(), 'dash', TRUE);
+                if ($this->Main_model->upload_files($photoUploadedPath, $title, $_FILES['images']) === FALSE) {
+                    $data['error'] = $this->upload->display_errors();
+                    print_r($data['error']);
+                }
+            }
+        }
+
         $isVideoUploaded = $this->post('isVideoUploaded'); //1 :data will insert to tblEventServiceData
         $videoUploadedPath = $this->post('videoUploadedPath');
 
-        $query = $this->db->simple_query("call usp_SetEvent('" . $eventId . "','" . $userId . "','" . $clientId . "','" . $eventName . "','" . $eventCategoryId . "','" . $startDateTime . "','" . $endDateTime . "','" . $venue . "','" . $guests . "','" . $speakers . "','" . $participants . "','" . $eventDescription . "','" . $eventStatusId . "','" . $serviceIdsOpted . "','" . $isSubmitedForDM . "','" . $eventStatusDescription . "','" . $newStartDateTime . "','" . $newEndDateTime . "','" . $isPhotoUploaded . "','" . $photoUploadedPath . "','" . $isVideoUploaded . "','" . $videoUploadedPath . "');");
-//        print_r($this->db->affected_rows());exit;
+
+        $vedioServiceId = $this->post('vedioUploadedServiceId');
+        if ($isVideoUploaded == 1 && count($_FILES)) {
+//           print_r($_FILES);
+//           echo count($_FILES['image_file']['name']);exit;
+            if (!empty($_FILES['vedios']['name'][0])) {
+                $videoUploadedPath = "uploads/client" . $clientId . "/event_" . url_title($eventName) . "/service_" . $vedioServiceId . "" . '/' . "vedios/";
+                if (!is_dir($videoUploadedPath)) {
+                    @mkdir($videoUploadedPath, 0777, TRUE);
+                }
+                $title = url_title('vedio_' . time(), 'dash', TRUE);
+                if ($this->Main_model->upload_files($videoUploadedPath, $title, $_FILES['vedios']) === FALSE) {
+                    $data['error'] = $this->upload->display_errors();
+                    print_r($data['error']);
+                }
+            }
+        }
+        $query = $this->db->query("call usp_SetEvent('" . $eventId . "','" . $userId . "','" . $clientId . "','" . $eventName . "','" . $eventCategoryId . "','" . $startDateTime . "','" . $endDateTime . "','" . $venue . "','" . $guests . "','" . $speakers . "','" . $participants . "','" . $eventDescription . "','" . $eventStatusId . "','" . $serviceIdsOpted . "','" . $isSubmitedForDM . "','" . $eventStatusDescription . "','" . $newStartDateTime . "','" . $newEndDateTime . "','" . $isPhotoUploaded . "','" . $photoUploadServiceId . "','" . $photoEventServiceDataId . "','" . $photoUploadedPath . "','" . $isVideoUploaded . "','" . $videoUploadedPath . "',@errorCode);");
+        print_r($query);
+        exit;
+        print_r($this->db->last_query());
+        exit;
         if ($this->db->affected_rows() > 0) {
             $output = [
                 'status' => '1',
@@ -197,10 +248,11 @@ class Events extends MY_Controller {
         $pageIndex = $this->post('pageIndex');
 
         $startingRowNumber = NULL;
+        $dMCompletedBy = $this->post('dMCompletedBy');
+        $callingFrom = $userdata->RoleCode;
 
-
-        $query1 = $this->db->query("call usp_GetEvents('" . $eventId . "','" . $eventName . "','" . $eventStatusId . "','" . $venue . "','" . $guests . "','" . $startDate_From . "','" . $startDate_To . "','" . $userId . "','" . $clientId . "','" . $orderByColumn . "','" . $orderAscDesc . "','" . $pageLength . "','" . $pageIndex . "','" . $startingRowNumber . "',@totalRows ,@errorCode);");
-        $query2 = $this->db->query("call usp_GetEvents('" . $eventId . "','" . $eventName . "','" . $eventStatusId . "','" . $venue . "','" . $guests . "','" . $startDate_From . "','" . $startDate_To . "','" . $userId . "','" . $clientId . "','" . $orderByColumn . "','" . $orderAscDesc . "','" . $pageLength . "','" . $pageIndex . "','" . $startingRowNumber . "',@totalRows ,@errorCode);");
+        $query1 = $this->db->query("call usp_GetEvents('" . $eventId . "','" . $eventName . "','" . $eventStatusId . "','" . $venue . "','" . $guests . "','" . $startDate_From . "','" . $startDate_To . "','" . $userId . "','" . $clientId . "','" . $orderByColumn . "','" . $dMCompletedBy . "','" . $callingFrom . "','" . $orderAscDesc . "','" . $pageLength . "','" . $pageIndex . "','" . $startingRowNumber . "',@totalRows ,@errorCode);");
+        $query2 = $this->db->query("call usp_GetEvents('" . $eventId . "','" . $eventName . "','" . $eventStatusId . "','" . $venue . "','" . $guests . "','" . $startDate_From . "','" . $startDate_To . "','" . $userId . "','" . $clientId . "','" . $orderByColumn . "','" . $dMCompletedBy . "','" . $callingFrom . "','" . $orderAscDesc . "','" . $pageLength . "','" . $pageIndex . "','" . $startingRowNumber . "',@totalRows ,@errorCode);");
         $result1 = $query1->result();
         $result2 = $query2->result();
         $result = array_merge($result1, $result2);
@@ -233,7 +285,7 @@ class Events extends MY_Controller {
         $userdata = $this->Main_model->userdata();
         $clientId = $this->post('clientId');
         $eventStatusId = $this->post('eventStatusId');
-        $eventServiceIdsAndData = $this->post('eventServiceIdsAndData');
+        $eventServiceIdsAndData = $this->post('eventServiceIdsAndData'); //1~@~2~@~dmcheck#@#1~@~3~@~dmcheck
 
         $isPhotoUploaded = $this->post('isPhotoUploaded'); //1 :data will insert to tblEventServiceData
         $photoUploadedPath = $this->post('photoUploadedPath');
@@ -257,14 +309,14 @@ class Events extends MY_Controller {
 
         $userId = $this->user_data->id;
         //codeforphoto upload
-//        $str = "1~@~2~@~dmcheck#@#1~@~3~@~dmcheck";
-//
-//        print_r(explode("#@#", $str));
-//
-//        foreach (explode("#@#", $str) as $row) {
-//
-//            print_r(explode("~@~", $row));
-//        }
+        $str = "1~@~2~@~dmcheck#@#1~@~3~@~dmcheck";
+
+        print_r(explode("#@#", $str));
+
+        foreach (explode("#@#", $str) as $row) {
+
+            print_r(explode("~@~", $row));
+        }
 //        if ($isPhotoUploaded == "1") {
 //            $document_path = "uploads/event_" . $eventId . "/service" . $eventServiceIdsAndData . "" . '/';
 //            if (!is_dir($document_path)) {
