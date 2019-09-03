@@ -80,7 +80,7 @@ class Events extends MY_Controller {
             $serviceoptedarr = explode(',', $serviceIdsOpted);
             if (count($serviceoptedarr) > 0) {
                 foreach ($serviceoptedarr as $service_id) {
-                    $photoUploadedPath = "uploads/client_" . sprintf("%02d", $clientId)  . "/event_" . sprintf("%02d", $eventId) . "/service_" . sprintf("%02d", $service_id) . "" . '/';
+                    $photoUploadedPath = "uploads/client_" . sprintf("%02d", $clientId) . "/event_" . sprintf("%02d", $eventId) . "/service_" . sprintf("%02d", $service_id) . "" . '/';
                     if (!is_dir($photoUploadedPath)) {
                         @mkdir($photoUploadedPath, 0777, TRUE);
                     }
@@ -91,7 +91,7 @@ class Events extends MY_Controller {
 //           print_r($_FILES);
 //           echo count($_FILES['image_file']['name']);exit;
             if (!empty($_FILES['images']['name'][0])) {
-                $photoUploadedPath = "uploads/client_" . sprintf("%02d", $clientId)  . "/event_" . sprintf("%02d", $eventId) . "/service_" . sprintf("%02d", $photoUploadServiceId) . "" . '/';
+                $photoUploadedPath = "uploads/client_" . sprintf("%02d", $clientId) . "/event_" . sprintf("%02d", $eventId) . "/service_" . sprintf("%02d", $photoUploadServiceId) . "" . '/';
                 if (!is_dir($photoUploadedPath)) {
                     @mkdir($photoUploadedPath, 0777, TRUE);
                 }
@@ -123,11 +123,8 @@ class Events extends MY_Controller {
                 }
             }
         }
-        $query = $this->db->query("call usp_SetEvent('" . $eventId . "','" . $userId . "','" . $clientId . "','" . $eventName . "','" . $eventCategoryId . "','" . $startDateTime . "','" . $endDateTime . "','" . $venue . "','" . $guests . "','" . $speakers . "','" . $participants . "','" . $eventDescription . "','" . $eventStatusId . "','" . $serviceIdsOpted . "','" . $isSubmitedForDM . "','" . $eventStatusDescription . "','" . $newStartDateTime . "','" . $newEndDateTime . "','" . $isPhotoUploaded . "','" . $photoUploadServiceId . "','" . $photoEventServiceDataId . "','" . $photoUploadedPath . "','" . $isVideoUploaded . "','" . $videoUploadedPath . "',@errorCode);");
-        print_r($query);
-        exit;
-        print_r($this->db->last_query());
-        exit;
+        $query = $this->db->simple_query("call usp_SetEvent('" . $eventId . "','" . $userId . "','" . $clientId . "','" . $eventName . "','" . $eventCategoryId . "','" . $startDateTime . "','" . $endDateTime . "','" . $venue . "','" . $guests . "','" . $speakers . "','" . $participants . "','" . $eventDescription . "','" . $eventStatusId . "','" . $serviceIdsOpted . "','" . $isSubmitedForDM . "','" . $eventStatusDescription . "','" . $newStartDateTime . "','" . $newEndDateTime . "','" . $isPhotoUploaded . "','" . $photoUploadServiceId . "','" . $photoEventServiceDataId . "','" . $photoUploadedPath . "','" . $isVideoUploaded . "','" . $videoUploadedPath . "',@errorCode);");
+//echo $this->db->last_query();exit;
         if ($this->db->affected_rows() > 0) {
             $output = [
                 'status' => '1',
@@ -173,10 +170,10 @@ class Events extends MY_Controller {
     public function eventNamesAjax_post() {
         $this->post = file_get_contents('php://input');
         $event_name = $this->post('eventName');
-            
+
 
         $userdata = $this->Main_model->userdata();
-        
+
         $query = $this->db->query("call usp_GetEventNamesForAjaxSearch('" . $event_name . "'," . $userdata->ClientId . ",@errorCode)");
         $result = $query->result_array();
 
@@ -308,23 +305,43 @@ class Events extends MY_Controller {
         $isEventLockReleased = $this->post('isEventLockReleased');
         $eventLockReleaseReason = $this->post('eventLockReleaseReason');
 
+
         $userId = $this->user_data->id;
         //codeforphoto upload
         $str = "1~@~2~@~dmcheck#@#1~@~3~@~dmcheck";
 
-        print_r(explode("#@#", $str));
 
         foreach (explode("#@#", $str) as $row) {
 
-            print_r(explode("~@~", $row));
+//            print_r(explode("~@~", $row));
         }
-//        if ($isPhotoUploaded == "1") {
-//            $document_path = "uploads/event_" . $eventId . "/service" . $eventServiceIdsAndData . "" . '/';
-//            if (!is_dir($document_path)) {
-//                @mkdir($document_path, 0777, TRUE);
-//            }
-//        }
-//
+        if ($isPhotoUploaded == 1 && count($_FILES)) {
+//            print_r($_FILES['images_7']);
+//            exit;
+//           echo count($_FILES['image_file']['name']);exit;
+            $photoUploadedPath=[];
+            $i=0;
+            foreach ($_FILES as $file_name => $val) {
+                $serviceid_from_image = substr($file_name, strpos($file_name, "_") + 1);
+//                print_r($val);exit;
+                if (!empty($val['name'][0])) {
+                    $photoUploadedPath[$i] = "uploads/client_" . sprintf("%02d", $clientId) . "/event_" . sprintf("%02d", $eventId) . "/service_" . sprintf("%02d", $serviceid_from_image) . "" . '/';
+                    if (!is_dir($photoUploadedPath[$i])) {
+                        @mkdir($photoUploadedPath[$i], 0777, TRUE);
+                    }
+                    $title = url_title('image_' . time(), 'dash', TRUE);
+                    if ($this->Main_model->upload_files($photoUploadedPath[$i], $title, $val) === FALSE) {
+                        $data['error'] = $this->upload->display_errors();
+                        print_r($data['error']);
+                        exit;
+                    }
+                }
+            $i++; }
+                    
+            $photoUploadedPath=implode(',',$photoUploadedPath);
+                       
+
+        }
 //        exit;
         //code end
         $query = $this->db->simple_query("call usp_SetEventByDMExecutive('" . $eventId . "','" . $clientId . "','" . $eventStatusId . "','" . $eventServiceIdsAndData . "','" . $isPhotoUploaded . "','" . $photoUploadedPath . "','" . $isVideoUploaded . "','" . $videoUploadedPath . "','" . $eventName . "','" . $eventCategoryId . "','" . $startDateTime . "','" . $endDateTime . "','" . $venue . "','" . $guests . "','" . $speakers . "','" . $participants . "','" . $eventDescription . "','" . $isDMCompleted . "','" . $DMComments . "','" . $isEventLockReleased . "','" . $eventLockReleaseReason . "','" . $userId . "',@errorCode);");
@@ -346,7 +363,8 @@ class Events extends MY_Controller {
             $this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
         }
     }
-public function getCompletedEvents_get() {
+
+    public function getCompletedEvents_get() {
 
         $query = $this->db->query("call usp_GetCompletedEventsDataToSendNotifications(@errorCode)");
         $result = $query->result_array();
@@ -369,4 +387,5 @@ public function getCompletedEvents_get() {
             $this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
         }
     }
+
 }
