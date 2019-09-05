@@ -11,7 +11,7 @@ class Main_model extends CI_Model {
     }
 
     public function userdata() {
-        $anji = "123";
+        
         $query = $this->db->query("call usp_GetUserRoleClientDetails('" . $this->user_data->id . "',@errorCode)");
         $result = $query->row();
         return $result;
