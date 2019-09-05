@@ -71,59 +71,30 @@ class Events extends MY_Controller {
         $newEndDateTime = $this->post('newEndDateTime ');
 
         $isPhotoUploaded = $this->post('isPhotoUploaded'); //1 :data will insert to tblEventServiceData
-        $photoUploadServiceId = $this->post('photoUploadServiceId');
-        $photoEventServiceDataId = $this->post('photoEventServiceDataId');
+         $photoUploadedPath = $this->post('photoUploadedPath');
+         
 
 
-//                   print_r($_FILES);exit;
         if ($eventId != 0) {
             $serviceoptedarr = explode(',', $serviceIdsOpted);
             if (count($serviceoptedarr) > 0) {
                 foreach ($serviceoptedarr as $service_id) {
-                    $photoUploadedPath = "uploads/client_" . sprintf("%02d", $clientId) . "/event_" . sprintf("%02d", $eventId) . "/service_" . sprintf("%02d", $service_id) . "" . '/';
-                    if (!is_dir($photoUploadedPath)) {
-                        @mkdir($photoUploadedPath, 0777, TRUE);
+                    $photoUploadedPath_own = "uploads/client_" . sprintf("%02d", $clientId) . "/event_" . sprintf("%02d", $eventId) . "/service_" . sprintf("%02d", $service_id) . "" . '/';
+                    if (!is_dir($photoUploadedPath_own)) {
+                        @mkdir($photoUploadedPath_own, 0777, TRUE);
                     }
                 }
             }
         }
-        if ($isPhotoUploaded == 1 && count($_FILES)) {
-//           print_r($_FILES);
-//           echo count($_FILES['image_file']['name']);exit;
-            if (!empty($_FILES['images']['name'][0])) {
-                $photoUploadedPath = "uploads/client_" . sprintf("%02d", $clientId) . "/event_" . sprintf("%02d", $eventId) . "/service_" . sprintf("%02d", $photoUploadServiceId) . "" . '/';
-                if (!is_dir($photoUploadedPath)) {
-                    @mkdir($photoUploadedPath, 0777, TRUE);
-                }
-                $title = url_title('image_' . time(), 'dash', TRUE);
-                if ($this->Main_model->upload_files($photoUploadedPath, $title, $_FILES['images']) === FALSE) {
-                    $data['error'] = $this->upload->display_errors();
-                    print_r($data['error']);
-                }
-            }
-        }
+        
 
         $isVideoUploaded = $this->post('isVideoUploaded'); //1 :data will insert to tblEventServiceData
         $videoUploadedPath = $this->post('videoUploadedPath');
 
 
         $vedioServiceId = $this->post('vedioUploadedServiceId');
-        if ($isVideoUploaded == 1 && count($_FILES)) {
-//           print_r($_FILES);
-//           echo count($_FILES['image_file']['name']);exit;
-            if (!empty($_FILES['vedios']['name'][0])) {
-                $videoUploadedPath = "uploads/client" . $clientId . "/event_" . url_title($eventName) . "/service_" . $vedioServiceId . "" . '/' . "vedios/";
-                if (!is_dir($videoUploadedPath)) {
-                    @mkdir($videoUploadedPath, 0777, TRUE);
-                }
-                $title = url_title('vedio_' . time(), 'dash', TRUE);
-                if ($this->Main_model->upload_files($videoUploadedPath, $title, $_FILES['vedios']) === FALSE) {
-                    $data['error'] = $this->upload->display_errors();
-                    print_r($data['error']);
-                }
-            }
-        }
-        $query = $this->db->simple_query("call usp_SetEvent('" . $eventId . "','" . $userId . "','" . $clientId . "','" . $eventName . "','" . $eventCategoryId . "','" . $startDateTime . "','" . $endDateTime . "','" . $venue . "','" . $guests . "','" . $speakers . "','" . $participants . "','" . $eventDescription . "','" . $eventStatusId . "','" . $serviceIdsOpted . "','" . $isSubmitedForDM . "','" . $eventStatusDescription . "','" . $newStartDateTime . "','" . $newEndDateTime . "','" . $isPhotoUploaded . "','" . $photoUploadServiceId . "','" . $photoEventServiceDataId . "','" . $photoUploadedPath . "','" . $isVideoUploaded . "','" . $videoUploadedPath . "',@errorCode);");
+
+        $query = $this->db->simple_query("call usp_SetEvent('" . $eventId . "','" . $userId . "','" . $clientId . "','" . $eventName . "','" . $eventCategoryId . "','" . $startDateTime . "','" . $endDateTime . "','" . $venue . "','" . $guests . "','" . $speakers . "','" . $participants . "','" . $eventDescription . "','" . $eventStatusId . "','" . $serviceIdsOpted . "','" . $isSubmitedForDM . "','" . $eventStatusDescription . "','" . $newStartDateTime . "','" . $newEndDateTime . "','" . $photoUploadedPath . "','" . $videoUploadedPath . "',@errorCode);");
 //echo $this->db->last_query();exit;
         if ($this->db->affected_rows() > 0) {
             $output = [
@@ -285,10 +256,10 @@ class Events extends MY_Controller {
         $eventStatusId = $this->post('eventStatusId');
         $eventServiceIdsAndData = $this->post('eventServiceIdsAndData'); //1~@~2~@~dmcheck#@#1~@~3~@~dmcheck
 
-        $isPhotoUploaded = $this->post('isPhotoUploaded'); //1 :data will insert to tblEventServiceData
-        $photoUploadedPath = $this->post('photoUploadedPath');
-        $isVideoUploaded = $this->post('isVideoUploaded'); //1 :data will insert to tblEventServiceData
-        $videoUploadedPath = $this->post('videoUploadedPath');
+//        $isPhotoUploaded = $this->post('isPhotoUploaded'); //1 :data will insert to tblEventServiceData
+//        $photoUploadedPath = $this->post('photoUploadedPath');
+//        $isVideoUploaded = $this->post('isVideoUploaded'); //1 :data will insert to tblEventServiceData
+//        $videoUploadedPath = $this->post('videoUploadedPath');
 
         $eventName = $this->post('eventName');
         $eventCategoryId = $this->post('eventCategoryId');
@@ -315,7 +286,7 @@ class Events extends MY_Controller {
 
 //            print_r(explode("~@~", $row));
         }
-        if ($isPhotoUploaded == 1 && count($_FILES)) {
+        
 //            print_r($_FILES['images_7']);
 //            exit;
 //           echo count($_FILES['image_file']['name']);exit;
@@ -341,10 +312,11 @@ class Events extends MY_Controller {
             $photoUploadedPath=implode(',',$photoUploadedPath);
                        
 
-        }
+        
 //        exit;
         //code end
-        $query = $this->db->simple_query("call usp_SetEventByDMExecutive('" . $eventId . "','" . $clientId . "','" . $eventStatusId . "','" . $eventServiceIdsAndData . "','" . $isPhotoUploaded . "','" . $photoUploadedPath . "','" . $isVideoUploaded . "','" . $videoUploadedPath . "','" . $eventName . "','" . $eventCategoryId . "','" . $startDateTime . "','" . $endDateTime . "','" . $venue . "','" . $guests . "','" . $speakers . "','" . $participants . "','" . $eventDescription . "','" . $isDMCompleted . "','" . $DMComments . "','" . $isEventLockReleased . "','" . $eventLockReleaseReason . "','" . $userId . "',@errorCode);");
+        $query = $this->db->simple_query("call usp_SetEventByDMExecutive('" . $eventId . "','" . $clientId . "','" . $eventStatusId . "','" . $eventServiceIdsAndData . "','" . $eventName . "','" . $eventCategoryId . "','" . $startDateTime . "','" . $endDateTime . "','" . $venue . "','" . $guests . "','" . $speakers . "','" . $participants . "','" . $eventDescription . "','" . $isDMCompleted . "','" . $DMComments . "','" . $isEventLockReleased . "','" . $eventLockReleaseReason . "','" . $userId . "',@errorCode);");
+//$this->db->last_query();exit;
 //        print_r($this->db->affected_rows());exit;
         if ($this->db->affected_rows() > 0) {
             $output = [
