@@ -57,12 +57,11 @@ class Services extends MY_Controller {
             $this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
         }
     }
-public function getServices_get() {
+    public function getServices_get() {
+        $this->post = file_get_contents('php://input');
+        $serviceId=$this->post('serviceId');
+        $query = $this->db->query("call usp_GetServices('" . $serviceId . "',@errorCode)");
 
-        $userdata = $this->Main_model->userdata();
-        
-        $query = $this->db->query("call usp_GetServices('".$userdata->serviceId."'" . $userdata->ClientId . "',@errorCode)");
-        
         $result = $query->result_array();
 
         if ($result > 0) {
@@ -83,4 +82,5 @@ public function getServices_get() {
             $this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
         }
     }
+
 }
