@@ -294,7 +294,7 @@ class Events extends MY_Controller {
             $i=0;
             foreach ($_FILES as $file_name => $val) {
                 $serviceid_from_image = substr($file_name, strpos($file_name, "_") + 1);
-//                print_r($val);exit;
+
                 if (!empty($val['name'][0])) {
                     $photoUploadedPath[$i] = "uploads/client_" . sprintf("%02d", $clientId) . "/event_" . sprintf("%02d", $eventId) . "/service_" . sprintf("%02d", $serviceid_from_image) . "" . '/';
                     if (!is_dir($photoUploadedPath[$i])) {
