@@ -27,23 +27,64 @@ class Auth extends MY_Controller {
         $p = $this->post('password'); //Pasword Posted
         
         $kunci = $this->config->item('thekey');
-        $invalidLogin = ['status' => '0','Message'=>'Inavalid Login']; //Respon if login invalid
-
-        $query = $this->db->query("CALL usp_AuthenticateUser('".$u."','".$p."')");
         
-        $val = $query->row(); //Model to get single data row from database base on username
+        $canShowGenericErrorMessageToUser=false;
+        try 
+        {
+            $query = $this->db->query("CALL usp_AuthenticateUser('".$u."','".$p."',@errorCode,@erroMessage)");
+        
+            $result = $query->result();
+//            print_r($result);exit;
+            if(isset($result[0]->ErrorCode))
+            {
+                if($result[0]->ErrorCode == 45000)
+                {
+                    // error in DB - CUSTOM MESSAGE
+                    throw new Exception(substr($result[0]->ErrorMessage, strpos($result[0]->ErrorMessage, ":") + 1)); 
+                }
+                else
+                {
+                    // error in DB - Generic Message
+                   // log_message('error', 'Database:'.$result[0]->ErrorMessage);
+                    $canShowGenericErrorMessageToUser = true;
+                    throw new Exception($result[0]->ErrorMessage); 
+                }
+                
+            }
+            else
+            {
+                // success in DB
        
-        if($val->ErrorCode == -1){$this->response($invalidLogin, REST_Controller::HTTP_NOT_FOUND);}
-        	$token['id'] = $val->UserId;  //From here
+            $token['id'] = $result[0]->UserId;  //From here
             $token['username'] = $u;
             $date = new DateTime();
             $token['iat'] = $date->getTimestamp();
             $token['exp'] = $date->getTimestamp() + 60*60*5; //To here is to generate token
            
             $token = JWT::encode($token,$kunci ); //This is the output token
-            $output=['status' => '1','Message'=>'Login Success',"token"=>$token];
+            $output=[
+                'status' => '1',
+                'Message'=>'Login Success',
+                "token"=>$token
+                    ];
             $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
        
+            }
+        }
+        catch (Exception $e)
+        {
+            log_message('error', 'Database:'.$e->getMessage());
+            
+            $output = [
+                    'status' => '0',
+                    'Message' => $canShowGenericErrorMessageToUser == true ? GENERIC_ERROR_MESSAGE : $e->getMessage(), //'Failed to save Data',substr($e->getMessage(), strpos($e->getMessage(), ":") + 1)
+                    'Row count' => 0,
+                    'Responce' => 0,
+                ];
+                $this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
+        }
+        
+        
     }
     
 

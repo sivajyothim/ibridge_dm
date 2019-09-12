@@ -84,3 +84,8 @@ defined('EXIT_DATABASE')       OR define('EXIT_DATABASE', 8); // database error
 defined('EXIT__AUTO_MIN')      OR define('EXIT__AUTO_MIN', 9); // lowest automatically-assigned error code
 defined('EXIT__AUTO_MAX')      OR define('EXIT__AUTO_MAX', 125); // highest automatically-assigned error code
 
+
+
+
+defined('GENERIC_ERROR_MESSAGE')      OR define('GENERIC_ERROR_MESSAGE', 'System encountered an error! Please try again.<br />Contact administrator if problem continues.'); // highest automatically-assigned error code
+
