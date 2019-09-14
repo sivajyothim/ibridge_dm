@@ -299,6 +299,43 @@ class Events extends MY_Controller {
             $this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
         }
     }
+    
+    
+    public function getEventReleaseReasons_post() {
+        $this->post = file_get_contents('php://input');
+        if ($this->post('eventId') != "") {
+            $eventId = $this->post('eventId');
+        } else {
+            $eventId = 0;  //As per SP
+        }
+       
+
+        $userId = $this->user_data->id;
+
+       
+        $callingFrom = $this->post('callingFrom');
+
+        $query = $this->db->query("call usp_GetEventReleaseReasons('" . $eventId . "'," . $userId . ",'" . $callingFrom . "',@errorCode);");
+        $result = $query->result();
+//        print_r($this->db->last_query());exit;
+        if ($result > 0) {
+            $output = [
+                'status' => '1',
+                'Message' => 'Data Retrived Succesfully',
+                'Row count' => count($result),
+                'Responce' => $result,
+            ];
+            $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
+        } else {
+            $output = [
+                'status' => '0',
+                'Message' => 'No data found',
+                'Row count' => 0,
+                'Responce' => 0,
+            ];
+            $this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
+        }
+    }
 
     public function dmmanageEvent_post() {
         $this->post = file_get_contents('php://input');
