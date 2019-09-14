@@ -230,7 +230,7 @@ class User extends MY_Controller {
         } else {
             $clentId = 0;
         }
-        
+
         $clientName = $this->post('clientName');
         $contactNumber = $this->post('contactNo');
         $email = $this->post('email');
@@ -247,51 +247,260 @@ class User extends MY_Controller {
 
 
 
-       $canShowGenericErrorMessageToUser = false;
-        try 
-        {
-        $query = $this->db->query("call usp_SetClient('" . $clentId . "','" . $clientName . "', '" . $contactNumber . "', '" . $email . "','" . $websiteUrl . "','" . $facebookURL . "','" . $youtubeURL . "','" . $instagramURL . "','" . $twitterURL . "','" . $pinterestURL . "','" . $linkedInURL . "','" . $active . "','" . $serviceIdsOpted . "','" . $userId . "' ,@errorCode,@errorMessage);");
+        $canShowGenericErrorMessageToUser = false;
+        try {
+            $query = $this->db->query("call usp_SetClient('" . $clentId . "','" . $clientName . "', '" . $contactNumber . "', '" . $email . "','" . $websiteUrl . "','" . $facebookURL . "','" . $youtubeURL . "','" . $instagramURL . "','" . $twitterURL . "','" . $pinterestURL . "','" . $linkedInURL . "','" . $active . "','" . $serviceIdsOpted . "','" . $userId . "' ,@errorCode,@errorMessage);");
 //        echo $this->db->last_query();exit;
-            $result=$query->result();
+            $result = $query->result();
 
 
-            if(isset($result[0]->ErrorCode) && $result[0]->ErrorCode > 0){
-                if($result[0]->ErrorCode == 45000)
-                {
+            if (isset($result[0]->ErrorCode) && $result[0]->ErrorCode > 0) {
+                if ($result[0]->ErrorCode == 45000) {
                     // error in DB - CUSTOM MESSAGE
-                    throw new Exception(substr($result[0]->ErrorMessage, strpos($result[0]->ErrorMessage, ":") + 1)); 
-                }
-                else
-                {
+                    throw new Exception(substr($result[0]->ErrorMessage, strpos($result[0]->ErrorMessage, ":") + 1));
+                } else {
                     // error in DB - Generic Message
                     $canShowGenericErrorMessageToUser = true;
-                    throw new Exception($result[0]->ErrorMessage); 
+                    throw new Exception($result[0]->ErrorMessage);
                 }
-            }
-            else
-            {
+            } else {
                 // success in DB
                 $output = [
                     'status' => '1',
                     'Message' => 'Data Saved Succesfully',
                     'Row count' => $this->db->affected_rows(),
-
                 ];
                 $this->set_response($output, REST_Controller::HTTP_OK);
             }
-        }
-        catch (Exception $e)
-        {
-             
-            log_message('error', 'Database:'.$e->getMessage());
-            
+        } catch (Exception $e) {
+
+            log_message('error', 'Database:' . $e->getMessage());
+
             $output = [
-                    'status' => '0',
-                    'Message' => $canShowGenericErrorMessageToUser == true ? GENERIC_ERROR_MESSAGE : $e->getMessage(),
-                    'Row count' => 0,
-                    'Responce' => 0,
+                'status' => '0',
+                'Message' => $canShowGenericErrorMessageToUser == true ? GENERIC_ERROR_MESSAGE : $e->getMessage(),
+                'Row count' => 0,
+                'Responce' => 0,
+            ];
+            $this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
+        }
+    }
+
+    public function changePassword_post() {
+        $this->post = file_get_contents('php://input');
+
+        $userId = $this->post('userId');
+        $oldPassword = $this->post('oldPassword');
+        $newPassword = $this->post('newPassword');
+
+
+
+        $canShowGenericErrorMessageToUser = false;
+        try {
+            $query = $this->db->query("call usp_ChangePassword(" . $userId . ",'" . $oldPassword . "','" . $newPassword . "',@errorCode,@errorMessage);");
+
+            $result = $query->result();
+//            print_r($result);
+//            exit;
+
+            if (isset($result[0]->ErrorCode) && $result[0]->ErrorCode > 0) {
+                if ($result[0]->ErrorCode == 45000) {
+                    // error in DB - CUSTOM MESSAGE
+                    throw new Exception(substr($result[0]->ErrorMessage, strpos($result[0]->ErrorMessage, ":") + 1));
+                } else {
+                    // error in DB - Generic Message
+                    $canShowGenericErrorMessageToUser = true;
+                    throw new Exception($result[0]->ErrorMessage);
+                }
+            } else {
+                // success in DB
+                $output = [
+                    'status' => '1',
+                    'Message' => 'Data Saved Succesfully',
+                    'Row count' => $this->db->affected_rows(),
                 ];
-                $this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
+                $this->set_response($output, REST_Controller::HTTP_OK);
+            }
+        } catch (Exception $e) {
+
+            log_message('error', 'Database:' . $e->getMessage());
+
+            $output = [
+                'status' => '0',
+                'Message' => $canShowGenericErrorMessageToUser == true ? GENERIC_ERROR_MESSAGE : $e->getMessage(),
+                'Row count' => 0,
+                'Responce' => 0,
+            ];
+            $this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
+        }
+    }
+
+    public function CheckEMailToResetPassword_post() {
+        $this->post = file_get_contents('php://input');
+
+        $email = $this->post('email');
+
+
+
+
+        $canShowGenericErrorMessageToUser = false;
+        try {
+            $query = $this->db->query("call usp_CheckEMailToResetPassword('" . $email . "',@isEmailExists,@GUIDToResetPassword,@errorCode,@errorMessage);");
+//            echo $this->db->last_query();exit;
+            $result = $query->result();
+//            print_r($result);
+//            exit;
+
+            if (isset($result[0]->ErrorCode) && $result[0]->ErrorCode > 0) {
+                if ($result[0]->ErrorCode == 45000) {
+                    // error in DB - CUSTOM MESSAGE
+                    throw new Exception(substr($result[0]->ErrorMessage, strpos($result[0]->ErrorMessage, ":") + 1));
+                } else {
+                    // error in DB - Generic Message
+                    $canShowGenericErrorMessageToUser = true;
+                    throw new Exception($result[0]->ErrorMessage);
+                }
+            } else {
+                // success in DB
+                if ($result[0]->IsEmailExists == 1) {
+                     $subject = 'Reset Password';
+                     $link=base_url().'reset-password/'.$result[0]->GUIDToResetPassword;
+                $body = 'Dear User,<br /> Please Click bellow link to reset password ' . $link . '<br /><br />Thanks,<br />Ibridge Team';
+//            $mail_result=$this->Main_model->send_email( $subject, $body, $email, '' );
+                        $message = "Email Sent with Resetpassword Link .";
+                    
+                }
+                else {
+                        $message = "Email Sent with Resetpassword Link";
+                    }
+                $output = [
+                        'status' => '1',
+                        'Message' => $message,
+                        'Row count' => $this->db->affected_rows(),
+                    ];
+                    $this->set_response($output, REST_Controller::HTTP_OK);
+            }
+        } catch (Exception $e) {
+
+            log_message('error', 'Database:' . $e->getMessage());
+
+            $output = [
+                'status' => '0',
+                'Message' => $canShowGenericErrorMessageToUser == true ? GENERIC_ERROR_MESSAGE : $e->getMessage(),
+                'Row count' => 0,
+                'Responce' => 0,
+            ];
+            $this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
+        }
+    }
+    
+    public function ValidateRequestToResetPassword_post() {
+        $this->post = file_get_contents('php://input');
+
+        $GUIDToResetPassword = $this->post('GUIDToResetPassword');
+
+
+
+
+        $canShowGenericErrorMessageToUser = false;
+        try {
+            $query = $this->db->query("call usp_ValidateRequestToResetPassword('" . $GUIDToResetPassword . "',@isValidRequest,@userId,@errorCode);");
+//            echo $this->db->last_query();exit;
+            $result = $query->result();
+//            print_r($result);
+//            exit;
+
+            if (isset($result[0]->ErrorCode) && $result[0]->ErrorCode > 0) {
+                if ($result[0]->ErrorCode == 45000) {
+                    // error in DB - CUSTOM MESSAGE
+                    throw new Exception(substr($result[0]->ErrorMessage, strpos($result[0]->ErrorMessage, ":") + 1));
+                } else {
+                    // error in DB - Generic Message
+                    $canShowGenericErrorMessageToUser = true;
+                    throw new Exception($result[0]->ErrorMessage);
+                }
+            } else {
+                // success in DB
+                if ($result[0]->IsValidRequest == 1) {
+                        $status=1;
+                        $message = "Valid Request";
+                        $userId= $this->encrypt->encode($result[0]->UserId); //$this->encrypt->encode($result[0]->userId)
+                }
+                else {
+                        $status=0;
+                        $message = "Invalid Request, please Reset your password Again";
+                        $userId= null;
+                    }
+                $output = [ 
+                        'status' => $status,
+                        'Message' => $message,
+                        'Row count' => $this->db->affected_rows(),
+                        'userId'=>$userId,
+                    ];
+                    $this->set_response($output, REST_Controller::HTTP_OK);
+            }
+        } catch (Exception $e) {
+
+            log_message('error', 'Database:' . $e->getMessage());
+
+            $output = [
+                'status' => '0',
+                'Message' => $canShowGenericErrorMessageToUser == true ? GENERIC_ERROR_MESSAGE : $e->getMessage(),
+                'Row count' => 0,
+                'Responce' => 0,
+            ];
+            $this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
+        }
+    }
+    public function ResetPassword_post() {
+        $this->post = file_get_contents('php://input');
+
+        $userId = $this->encrypt->decode($this->post('userId'));
+
+        $newPassword=$this->post('newPassword');
+        
+
+        $canShowGenericErrorMessageToUser = false;
+        try {
+            if($userId ==""){
+             throw new Exception('Please Provide valid user Id');
+            }
+            $query = $this->db->query("call usp_ResetPassword('" . $userId . "','".$newPassword."',@errorCode,@errorMessage);");
+//            echo $this->db->last_query();exit;
+            $result = $query->result();
+//            print_r($result);
+//            exit;
+
+            if (isset($result[0]->ErrorCode) && $result[0]->ErrorCode > 0) {
+                if ($result[0]->ErrorCode == 45000) {
+                    // error in DB - CUSTOM MESSAGE
+                    throw new Exception(substr($result[0]->ErrorMessage, strpos($result[0]->ErrorMessage, ":") + 1));
+                } else {
+                    // error in DB - Generic Message
+                    $canShowGenericErrorMessageToUser = true;
+                    throw new Exception($result[0]->ErrorMessage);
+                }
+            } else {
+                // success in DB
+                
+                $output = [ 
+                        'status' => '1',
+                        'Message' => "Your Password Changed Succesfully",
+                        'Row count' => $this->db->affected_rows(),
+                    ];
+                    $this->set_response($output, REST_Controller::HTTP_OK);
+            }
+        } catch (Exception $e) {
+
+            log_message('error', 'Database:' . $e->getMessage());
+
+            $output = [
+                'status' => '0',
+                'Message' => $canShowGenericErrorMessageToUser == true ? GENERIC_ERROR_MESSAGE : $e->getMessage(),
+                'Row count' => 0,
+                'Responce' => 0,
+            ];
+            $this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
         }
     }
 
