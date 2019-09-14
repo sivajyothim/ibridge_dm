@@ -187,7 +187,7 @@ class Events extends MY_Controller {
         }
     }
 
-    public function eventSummary_get() {
+    public function eventSummary_post() {
 
 //        $userdata = $this->Main_model->userdata();
         $clientId=$this->post('clientId');

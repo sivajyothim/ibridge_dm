@@ -79,7 +79,7 @@ class User extends MY_Controller {
         }
     }
 
-    public function getClients_get() {
+    public function getClients_post() {
         $userId = $this->user_data->id;
 //        $userdata = $this->Main_model->userdata();
         $clientId=$this->post('clientId');
