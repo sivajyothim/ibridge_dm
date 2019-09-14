@@ -223,14 +223,14 @@ class User extends MY_Controller {
         }
     }
 
-    public function setClient_post() {
-//        $this->post = file_get_contents('php://input');
-        if ($this->post('userId') != "") {
-            $userId = $this->post('userId');
+    public function manageClient_post() {
+        $this->post = file_get_contents('php://input');
+        if (!empty($this->post('clientId'))) {
+            $clentId = $this->post('clientId');
         } else {
-            $userId = 0;  //As per SP
+            $clentId = 0;
         }
-        $clentId = $this->post('clientId');
+        
         $clientName = $this->post('clientName');
         $contactNumber = $this->post('contactNo');
         $email = $this->post('email');
@@ -246,23 +246,52 @@ class User extends MY_Controller {
         $userId = $this->user_data->id;
 
 
-        $query = $this->db->query("call usp_SetClient('" . $clentId . "','" . $clientName . "', '" . $contactNumber . "', '" . $email . "','" . $websiteUrl . "','" . $facebookURL . "','" . $youtubeURL . "','" . $instagramURL . "','" . $twitterURL . "','" . $pinterestURL . "','" . $linkedInURL . "','" . $active . "','" . $serviceIdsOpted . "','" . userId . "' ,@errorCode,@errorMessage);");
 
-        if ($this->db->affected_rows() > 0) {
+       $canShowGenericErrorMessageToUser = false;
+        try 
+        {
+        $query = $this->db->query("call usp_SetClient('" . $clentId . "','" . $clientName . "', '" . $contactNumber . "', '" . $email . "','" . $websiteUrl . "','" . $facebookURL . "','" . $youtubeURL . "','" . $instagramURL . "','" . $twitterURL . "','" . $pinterestURL . "','" . $linkedInURL . "','" . $active . "','" . $serviceIdsOpted . "','" . $userId . "' ,@errorCode,@errorMessage);");
+//        echo $this->db->last_query();exit;
+            $result=$query->result();
+
+
+            if(isset($result[0]->ErrorCode) && $result[0]->ErrorCode > 0){
+                if($result[0]->ErrorCode == 45000)
+                {
+                    // error in DB - CUSTOM MESSAGE
+                    throw new Exception(substr($result[0]->ErrorMessage, strpos($result[0]->ErrorMessage, ":") + 1)); 
+                }
+                else
+                {
+                    // error in DB - Generic Message
+                    $canShowGenericErrorMessageToUser = true;
+                    throw new Exception($result[0]->ErrorMessage); 
+                }
+            }
+            else
+            {
+                // success in DB
+                $output = [
+                    'status' => '1',
+                    'Message' => 'Data Saved Succesfully',
+                    'Row count' => $this->db->affected_rows(),
+
+                ];
+                $this->set_response($output, REST_Controller::HTTP_OK);
+            }
+        }
+        catch (Exception $e)
+        {
+             
+            log_message('error', 'Database:'.$e->getMessage());
+            
             $output = [
-                'status' => '1',
-                'Message' => 'Data Saved Succesfully',
-                'Row count' => $this->db->affected_rows()
-            ];
-            $this->set_response($output, REST_Controller::HTTP_OK);
-        } else {
-            $output = [
-                'status' => '0',
-                'Message' => 'Failed to save Data',
-                'Row count' => 0,
-                'Responce' => 0,
-            ];
-            $this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
+                    'status' => '0',
+                    'Message' => $canShowGenericErrorMessageToUser == true ? GENERIC_ERROR_MESSAGE : $e->getMessage(),
+                    'Row count' => 0,
+                    'Responce' => 0,
+                ];
+                $this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
         }
     }
 

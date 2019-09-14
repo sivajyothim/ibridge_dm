@@ -45,8 +45,8 @@ class Events extends MY_Controller {
         /* INSERT INTO tblEvents */
         $userId = $this->user_data->id;
 
-        $userdata = $this->Main_model->userdata();
-        $clientId = $userdata->ClientId;
+//        $userdata = $this->Main_model->userdata();
+        $clientId = $this->post('clientId');
 
         $eventName = $this->post('eventName');
         $eventCategoryId = $this->post('eventCategoryId');
@@ -68,45 +68,65 @@ class Events extends MY_Controller {
 
         /* when event is postponed */
         $newStartDateTime = $this->post('newStartDateTime');
-        $newEndDateTime = $this->post('newEndDateTime ');
+        $newEndDateTime = $this->post('newEndDateTime');
 
-        $isPhotoUploaded = $this->post('isPhotoUploaded'); //1 :data will insert to tblEventServiceData
-         $photoUploadedPath = $this->post('photoUploadedPath');
-         
+//        $isPhotoUploaded = $this->post('isPhotoUploaded'); //1 :data will insert to tblEventServiceData
+        $photoUploadedPath = $this->post('photoUploadedPath');
 
 
-        if ($eventId != 0) {
-            $serviceoptedarr = explode(',', $serviceIdsOpted);
-            if (count($serviceoptedarr) > 0) {
-                foreach ($serviceoptedarr as $service_id) {
-                    $photoUploadedPath_own = "uploads/client_" . sprintf("%02d", $clientId) . "/event_" . sprintf("%02d", $eventId) . "/service_" . sprintf("%02d", $service_id) . "" . '/';
-                    if (!is_dir($photoUploadedPath_own)) {
-                        @mkdir($photoUploadedPath_own, 0777, TRUE);
-                    }
-                }
-            }
-        }
-        
 
-        $isVideoUploaded = $this->post('isVideoUploaded'); //1 :data will insert to tblEventServiceData
+
+
+
+//        $isVideoUploaded = $this->post('isVideoUploaded'); //1 :data will insert to tblEventServiceData
         $videoUploadedPath = $this->post('videoUploadedPath');
 
 
         $vedioServiceId = $this->post('vedioUploadedServiceId');
 
-        $query = $this->db->simple_query("call usp_SetEvent('" . $eventId . "','" . $userId . "','" . $clientId . "','" . $eventName . "','" . $eventCategoryId . "','" . $startDateTime . "','" . $endDateTime . "','" . $venue . "','" . $guests . "','" . $speakers . "','" . $participants . "','" . $eventDescription . "','" . $eventStatusId . "','" . $serviceIdsOpted . "','" . $isSubmitedForDM . "','" . $eventStatusDescription . "','" . $newStartDateTime . "','" . $newEndDateTime . "','" . $photoUploadedPath . "','" . $videoUploadedPath . "',@errorCode);");
-//echo $this->db->last_query();exit;
-        if ($this->db->affected_rows() > 0) {
-            $output = [
-                'status' => '1',
-                'Message' => 'Data Saved Succesfully',
-//                'Row count' => $this->db->affected_rows()
-            ];
-            $this->set_response($output, REST_Controller::HTTP_OK);
-        } else {
+        $canShowGenericErrorMessageToUser = false;
+        try {
+            $query = $this->db->query("call usp_SetEvent('" . $eventId . "','" . $userId . "','" . $clientId . "','" . $eventName . "','" . $eventCategoryId . "','" . $startDateTime . "','" . $endDateTime . "','" . $venue . "','" . $guests . "','" . $speakers . "','" . $participants . "','" . $eventDescription . "','" . $eventStatusId . "','" . $serviceIdsOpted . "','" . $isSubmitedForDM . "','" . $eventStatusDescription . "','" . $newStartDateTime . "','" . $newEndDateTime . "','" . $photoUploadedPath . "','" . $videoUploadedPath . "',@errorCode,@errorMessage);");
+//            echo $this->db->last_query();exit;
+            $result = $query->result();
+
+            if (isset($result[0]->ErrorCode) && $result[0]->ErrorCode > 0) {
+                if ($result[0]->ErrorCode == 45000) {
+                    // error in DB - CUSTOM MESSAGE
+                    throw new Exception(substr($result[0]->ErrorMessage, strpos($result[0]->ErrorMessage, ":") + 1));
+                } else {
+                    // error in DB - Generic Message
+                    $canShowGenericErrorMessageToUser = true;
+                    throw new Exception($result[0]->ErrorMessage);
+                }
+            } else {
+                // success in DB
+                $insertedEventid = $result[0]->EventId;
+                if ($insertedEventid != "") {
+                    $serviceoptedarr = explode(',', $serviceIdsOpted);
+                    if (count($serviceoptedarr) > 0) {
+                        foreach ($serviceoptedarr as $service_id) {
+                            $photoUploadedPath_own = "uploads/client_" . sprintf("%02d", $clientId) . "/event_" . sprintf("%02d", $insertedEventid) . "/service_" . sprintf("%02d", $service_id) . "" . '/';
+                            if (!is_dir($photoUploadedPath_own)) {
+                                @mkdir($photoUploadedPath_own, 0777, TRUE);
+                            }
+                        }
+                    }
+                }
+                $output = [
+                    'status' => '1',
+                    'Message' => 'Data Saved Succesfully',
+                    'Row count' => $this->db->affected_rows(),
+                ];
+                $this->set_response($output, REST_Controller::HTTP_OK);
+            }
+        } catch (Exception $e) {
+
+            log_message('error', 'Database:' . $e->getMessage());
+
             $output = [
                 'status' => '0',
-                'Message' => 'Failed to save Data',
+                'Message' => $canShowGenericErrorMessageToUser == true ? GENERIC_ERROR_MESSAGE : $e->getMessage(),
                 'Row count' => 0,
                 'Responce' => 0,
             ];
@@ -208,7 +228,7 @@ class Events extends MY_Controller {
 
         $userId = $this->user_data->id;
 
-        $userdata = $this->Main_model->userdata();
+//        $userdata = $this->Main_model->userdata();
         $clientId = $this->post('clientId');
         $orderByColumn = $this->post('orderByColumn');
         $orderAscDesc = $this->post('orderAscDesc');
@@ -218,20 +238,55 @@ class Events extends MY_Controller {
 
         $startingRowNumber = NULL;
         $dMCompletedBy = $this->post('dMCompletedBy');
-        $callingFrom = $userdata->RoleCode;
+        $callingFrom = $this->post('callingFrom');
 
-        $query1 = $this->db->query("call usp_GetEvents('" . $eventId . "','" . $eventName . "','" . $eventStatusId . "','" . $venue . "','" . $guests . "','" . $startDate_From . "','" . $startDate_To . "','" . $userId . "','" . $clientId . "','" . $orderByColumn . "','" . $dMCompletedBy . "','" . $callingFrom . "','" . $orderAscDesc . "','" . $pageLength . "','" . $pageIndex . "','" . $startingRowNumber . "',@totalRows ,@errorCode);");
-        $query2 = $this->db->query("call usp_GetEvents('" . $eventId . "','" . $eventName . "','" . $eventStatusId . "','" . $venue . "','" . $guests . "','" . $startDate_From . "','" . $startDate_To . "','" . $userId . "','" . $clientId . "','" . $orderByColumn . "','" . $dMCompletedBy . "','" . $callingFrom . "','" . $orderAscDesc . "','" . $pageLength . "','" . $pageIndex . "','" . $startingRowNumber . "',@totalRows ,@errorCode);");
-        $result1 = $query1->result();
-        $result2 = $query2->result();
-        $result = array_merge($result1, $result2);
+        $query = $this->db->query("call usp_GetEvents('" . $eventId . "','" . $eventName . "','" . $eventStatusId . "','" . $venue . "','" . $guests . "','" . $startDate_From . "','" . $startDate_To . "','" . $userId . "','" . $clientId . "','" . $orderByColumn . "','" . $dMCompletedBy . "','" . $callingFrom . "','" . $orderAscDesc . "','" . $pageLength . "','" . $pageIndex . "','" . $startingRowNumber . "',@totalRows ,@errorCode);");
+        $result = $query->result();
 //        print_r($this->db->last_query());exit;
         if ($result > 0) {
             $output = [
                 'status' => '1',
                 'Message' => 'Data Retrived Succesfully',
                 'Row count' => count($result),
-                'Responce' => ['event_data' => $result1, 'service_data' => $result2],
+                'Responce' => $result,
+            ];
+            $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
+        } else {
+            $output = [
+                'status' => '0',
+                'Message' => 'No data found',
+                'Row count' => 0,
+                'Responce' => 0,
+            ];
+            $this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
+        }
+    }
+    
+    public function getEventServices_post() {
+        $this->post = file_get_contents('php://input');
+        if ($this->post('eventId') != "") {
+            $eventId = $this->post('eventId');
+        } else {
+            $eventId = 0;  //As per SP
+        }
+       
+
+        $userId = $this->user_data->id;
+
+//        $userdata = $this->Main_model->userdata();
+        $clientId = $this->post('clientId');
+       
+        $callingFrom = $this->post('callingFrom');
+
+        $query = $this->db->query("call usp_GetEventServices('" . $eventId . "'," . $userId . ",'" . $clientId . "','" . $callingFrom . "',@errorCode);");
+        $result = $query->result();
+//        print_r($this->db->last_query());exit;
+        if ($result > 0) {
+            $output = [
+                'status' => '1',
+                'Message' => 'Data Retrived Succesfully',
+                'Row count' => count($result),
+                'Responce' => $result,
             ];
             $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
         } else {
@@ -251,15 +306,10 @@ class Events extends MY_Controller {
         $eventId = $this->post('eventId');
 
 
-        $userdata = $this->Main_model->userdata();
+//        $userdata = $this->Main_model->userdata();
         $clientId = $this->post('clientId');
         $eventStatusId = $this->post('eventStatusId');
         $eventServiceIdsAndData = $this->post('eventServiceIdsAndData'); //1~@~2~@~dmcheck#@#1~@~3~@~dmcheck
-
-//        $isPhotoUploaded = $this->post('isPhotoUploaded'); //1 :data will insert to tblEventServiceData
-//        $photoUploadedPath = $this->post('photoUploadedPath');
-//        $isVideoUploaded = $this->post('isVideoUploaded'); //1 :data will insert to tblEventServiceData
-//        $videoUploadedPath = $this->post('videoUploadedPath');
 
         $eventName = $this->post('eventName');
         $eventCategoryId = $this->post('eventCategoryId');
@@ -286,49 +336,67 @@ class Events extends MY_Controller {
 
 //            print_r(explode("~@~", $row));
         }
-        
+
 //            print_r($_FILES['images_7']);
 //            exit;
 //           echo count($_FILES['image_file']['name']);exit;
-            $photoUploadedPath=[];
-            $i=0;
-            foreach ($_FILES as $file_name => $val) {
-                $serviceid_from_image = substr($file_name, strpos($file_name, "_") + 1);
-
-                if (!empty($val['name'][0])) {
-                    $photoUploadedPath[$i] = "uploads/client_" . sprintf("%02d", $clientId) . "/event_" . sprintf("%02d", $eventId) . "/service_" . sprintf("%02d", $serviceid_from_image) . "" . '/';
-                    if (!is_dir($photoUploadedPath[$i])) {
-                        @mkdir($photoUploadedPath[$i], 0777, TRUE);
-                    }
-                    $title = url_title('image_' . time(), 'dash', TRUE);
-                    if ($this->Main_model->upload_files($photoUploadedPath[$i], $title, $val) === FALSE) {
-                        $data['error'] = $this->upload->display_errors();
-                        print_r($data['error']);
-                        exit;
-                    }
-                }
-            $i++; }
-                    
-            $photoUploadedPath=implode(',',$photoUploadedPath);
-                       
-
-        
+//        $photoUploadedPath = implode(',', $photoUploadedPath);
 //        exit;
         //code end
-        $query = $this->db->simple_query("call usp_SetEventByDMExecutive('" . $eventId . "','" . $clientId . "','" . $eventStatusId . "','" . $eventServiceIdsAndData . "','" . $eventName . "','" . $eventCategoryId . "','" . $startDateTime . "','" . $endDateTime . "','" . $venue . "','" . $guests . "','" . $speakers . "','" . $participants . "','" . $eventDescription . "','" . $isDMCompleted . "','" . $DMComments . "','" . $isEventLockReleased . "','" . $eventLockReleaseReason . "','" . $userId . "',@errorCode);");
-//$this->db->last_query();exit;
-//        print_r($this->db->affected_rows());exit;
-        if ($this->db->affected_rows() > 0) {
-            $output = [
-                'status' => '1',
-                'Message' => 'Data Saved Succesfully',
-                'Row count' => $this->db->affected_rows()
-            ];
-            $this->set_response($output, REST_Controller::HTTP_OK);
-        } else {
+        $canShowGenericErrorMessageToUser = false;
+        try {
+            $query = $this->db->query("call usp_SetEventByDMExecutive(" . $eventId . "," . $clientId . "," . $eventStatusId . ",'" . trim($eventServiceIdsAndData) . "','" . $eventName . "','" . $eventCategoryId . "','" . $startDateTime . "','" . $endDateTime . "','" . $venue . "','" . $guests . "','" . $speakers . "','" . $participants . "','" . $eventDescription . "','" . $isDMCompleted . "','" . $DMComments . "'," . $isEventLockReleased . ",'" . $eventLockReleaseReason . "'," . $userId . ",@errorCode,@errorMessage);");
+//            echo $this->db->last_query();exit;
+            $result = $query->result();
+//            print_r($result);
+//            exit;
+
+            if (isset($result[0]->ErrorCode) && $result[0]->ErrorCode > 0) {
+                if ($result[0]->ErrorCode == 45000) {
+                    // error in DB - CUSTOM MESSAGE
+                    throw new Exception(substr($result[0]->ErrorMessage, strpos($result[0]->ErrorMessage, ":") + 1));
+                } else {
+                    // error in DB - Generic Message
+                    $canShowGenericErrorMessageToUser = true;
+                    throw new Exception($result[0]->ErrorMessage);
+                }
+            } else {
+                // success in DB
+                //immage upload start
+                $photoUploadedPath = [];
+                $i = 0;
+                foreach ($_FILES as $file_name => $val) {
+                    $serviceid_from_image = substr($file_name, strpos($file_name, "_") + 1);
+
+                    if (!empty($val['name'][0])) {
+                        $photoUploadedPath[$i] = "uploads/client_" . sprintf("%02d", $clientId) . "/event_" . sprintf("%02d", $eventId) . "/service_" . sprintf("%02d", $serviceid_from_image) . "" . '/';
+                        if (!is_dir($photoUploadedPath[$i])) {
+                            @mkdir($photoUploadedPath[$i], 0777, TRUE);
+                        }
+                        $title = url_title('image_' . time(), 'dash', TRUE);
+                        if ($this->Main_model->upload_files($photoUploadedPath[$i], $title, $val) === FALSE) {
+                            $data['error'] = $this->upload->display_errors();
+                            print_r($data['error']);
+                            exit;
+                        }
+                    }
+                    $i++;
+                }
+                //image upload end
+                $output = [
+                    'status' => '1',
+                    'Message' => 'Data Saved Succesfully',
+                    'Row count' => $this->db->affected_rows(),
+                ];
+                $this->set_response($output, REST_Controller::HTTP_OK);
+            }
+        } catch (Exception $e) {
+
+            log_message('error', 'Database:' . $e->getMessage());
+
             $output = [
                 'status' => '0',
-                'Message' => 'Failed to save Data',
+                'Message' => $canShowGenericErrorMessageToUser == true ? GENERIC_ERROR_MESSAGE : $e->getMessage(),
                 'Row count' => 0,
                 'Responce' => 0,
             ];
@@ -384,4 +452,5 @@ class Events extends MY_Controller {
             $this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
         }
     }
+
 }
