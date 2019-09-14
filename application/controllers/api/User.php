@@ -81,13 +81,8 @@ class User extends MY_Controller {
 
     public function getClients_get() {
         $userId = $this->user_data->id;
-        $userdata = $this->Main_model->userdata();
-        $RoleId = $userdata->RoleId;
-        if ($RoleId == 1) {
-            $clientId = "-1";
-        } else {
-            $clientId = 0;
-        }
+//        $userdata = $this->Main_model->userdata();
+        $clientId=$this->post('clientId');
 
         if ($userId != "") {
             $query = $this->db->query("call usp_GetClients('" . $clientId . "','" . $userId . "',@errorCode)");

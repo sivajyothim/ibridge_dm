@@ -163,9 +163,9 @@ class Events extends MY_Controller {
         $event_name = $this->post('eventName');
 
 
-        $userdata = $this->Main_model->userdata();
-
-        $query = $this->db->query("call usp_GetEventNamesForAjaxSearch('" . $event_name . "'," . $userdata->ClientId . ",@errorCode)");
+//        $userdata = $this->Main_model->userdata();
+        $clientId=$this->post('clientId');
+        $query = $this->db->query("call usp_GetEventNamesForAjaxSearch('" . $event_name . "'," . $clientId . ",@errorCode)");
         $result = $query->result_array();
 
         if ($result > 0) {
@@ -189,8 +189,9 @@ class Events extends MY_Controller {
 
     public function eventSummary_get() {
 
-        $userdata = $this->Main_model->userdata();
-        $query = $this->db->query("call usp_GetEventsSummary(" . $this->user_data->id . "," . $userdata->ClientId . ",@errorCode)");
+//        $userdata = $this->Main_model->userdata();
+        $clientId=$this->post('clientId');
+        $query = $this->db->query("call usp_GetEventsSummary(" . $this->user_data->id . "," . $clientId . ",@errorCode)");
         $result = $query->result_array();
 
         if ($result > 0) {
