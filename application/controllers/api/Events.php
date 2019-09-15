@@ -215,34 +215,31 @@ class Events extends MY_Controller {
 
     public function getEvent_post() {
         $this->post = file_get_contents('php://input');
-        if ($this->post('eventId') != "") {
-            $eventId = $this->post('eventId');
-        } else {
-            $eventId = 0;  //As per SP
-        }
+
+        $eventId=GetNumericData($this->post('eventId'));
         $eventName = $this->post('eventName');
-        $eventStatusId = $this->post('eventStatusId');
+        $eventStatusId = GetNumericData($this->post('eventStatusId'));
         $venue = $this->post('venue');
         $guests = $this->post('guests');
         $startDate_From = $this->post('startDate_From');
         $startDate_To = $this->post('startDate_To');
 
-        $userId = $this->user_data->id;
+        $userId = GetNumericData($this->user_data->id);
 
 //        $userdata = $this->Main_model->userdata();
-        $clientId = $this->post('clientId');
-        $orderByColumn = $this->post('orderByColumn');
-        $orderAscDesc = $this->post('orderAscDesc');
+        $clientId = GetNumericData($this->post('clientId'));
+        $orderByColumn = GetNumericData($this->post('orderByColumn'));
+        $orderAscDesc = GetNumericData($this->post('orderAscDesc'));
 
-        $pageLength = $this->post('pageLength');
-        $pageIndex = $this->post('pageIndex');
+        $pageLength = GetNumericData($this->post('pageLength'));
+        $pageIndex = GetNumericData($this->post('pageIndex'));
 
-        $startingRowNumber = NULL;
-        $dMCompletedBy = $this->post('dMCompletedBy');
-        $callingFrom = $this->post('callingFrom');
+        $startingRowNumber = 1;
+        $dMCompletedBy = GetNumericData($this->post('dMCompletedBy'));
+        $callingFrom = GetNumericData($this->post('callingFrom'));
 
-        $query = $this->db->query("call usp_GetEvents(" . $eventId . ",'" . $eventName . "'," . $eventStatusId . ",'" . $venue . "','" . $guests . "','" . $startDate_From . "','" . $startDate_To . "','" . $userId . "'," . $clientId . "," . $dMCompletedBy . "," . $callingFrom . "," . $orderByColumn . "," . $orderAscDesc . "," . $pageLength . "," . $pageIndex . "," . $startingRowNumber . ",@totalRows ,@errorCode);");
-//        $result = $query->result();
+        $query = $this->db->query("call usp_GetEvents(" . $eventId . ",'" . $eventName . "'," . $eventStatusId . ",'" . $venue . "','" . $guests . "','" . $startDate_From . "','" . $startDate_To . "'," . $userId . "," . $clientId . "," . $dMCompletedBy . "," . $callingFrom . "," . $orderByColumn . "," . $orderAscDesc . "," . $pageLength . "," . $pageIndex . "," . $startingRowNumber . ",@totalRows ,@errorCode);");
+        $result = $query->result();
 //        print_r($result);exit;
 //        print_r($this->db->last_query());exit;
         if ($result > 0) {

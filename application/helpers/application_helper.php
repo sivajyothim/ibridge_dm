@@ -33,5 +33,13 @@ function search_revisions($dataArray, $search_value, $key_to_search, $other_matc
     return $keys;
 }
 
+function GetNumericData($value){
+    $returnVal= "NULL";
+   if(trim($value) != ""){
+       $returnVal=(int)($value);
+   } 
+   return $returnVal;
+}
+
 
 
