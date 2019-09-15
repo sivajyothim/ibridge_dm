@@ -82,11 +82,11 @@ class User extends MY_Controller {
     public function getClients_post() {
         $userId = $this->user_data->id;
 //        $userdata = $this->Main_model->userdata();
-        $clientId = $this->post('clientId');
+        $clientId = GetNumericData($this->post('clientId'));
         $clientName = $this->post('clientName');
 
         if ($userId != "") {
-            $query = $this->db->query("call usp_GetClients('" . $clientId . "','" . $userId . "','" . $clientName . "',@errorCode)");
+            $query = $this->db->query("call usp_GetClients(" . $clientId . "," . $userId . ",'" . $clientName . "',@errorCode)");
             $result = $query->result_array();
 
             if ($result > 0) {
@@ -121,12 +121,13 @@ class User extends MY_Controller {
         $userId = $this->user_data->id;
 
 
-        $clientId = $this->post('clientId');
+        $clientId = GetNumericData($this->post('clientId'));
         $userName = $this->post('userName');
-        $roleId = $this->post('roleId');
+        $roleId = GetNumericData($this->post('roleId'));
 
         if ($userId != "") {
-            $query = $this->db->query("call usp_GetUsers(" . $userId . ",'" . $clientId . "','" . $userName . "','" . $roleId . "',@errorCode)");
+            $query = $this->db->query("call usp_GetUsers(" . $userId . "," . $clientId . ",'" . $userName . "'," . $roleId . ",@errorCode)");
+//            echo $this->db->last_query();exit;
             $result = $query->result_array();
             if ($result > 0) {
                 $output = [
@@ -158,13 +159,10 @@ class User extends MY_Controller {
 
     public function manageUser_post() {
         $this->post = file_get_contents('php://input');
-        if ($this->post('userId') != "") {
-            $userId = $this->post('userId');
-        } else {
-            $userId = 0;  //As per SP
-        }
-        $roleId = $this->post('roleId');
-        $clientId = $this->post('clientId');
+       
+        $userId = GetNumericData($this->post('userId'));
+        $roleId = GetNumericData($this->post('roleId'));
+        $clientId = GetNumericData($this->post('clientId'));
         $name = $this->post('name');
         $contactNumber = $this->post('contactNumber');
         $email = $this->post('email');
@@ -174,13 +172,13 @@ class User extends MY_Controller {
 
         $assignClientsIds = $this->post('assignClientsIds');
         $disignation = $this->post('disignation');
-        $active = $this->post('active');
+        $active = GetNumericData($this->post('active'));
         $modifiedBy = $this->user_data->id;
 
 
         $canShowGenericErrorMessageToUser = false;
         try {
-            $query = $this->db->query("call usp_setUser('" . $userId . "','" . $roleId . "','" . $clientId . "','" . $name . "','" . $contactNumber . "','" . $email . "','" . $disignation . "','" . $password . "','" . $assignClientsIds . "','" . $active . "','" . $modifiedBy . "',@errorCode,@errorMessage);");
+            $query = $this->db->query("call usp_setUser(" . $userId . "," . $roleId . "," . $clientId . ",'" . $name . "','" . $contactNumber . "','" . $email . "','" . $disignation . "','" . $password . "','" . $assignClientsIds . "'," . $active . "," . $modifiedBy . ",@errorCode,@errorMessage);");
 
             $result = $query->result();
 //            print_r($result);
@@ -223,12 +221,8 @@ class User extends MY_Controller {
 
     public function manageClient_post() {
         $this->post = file_get_contents('php://input');
-        if (!empty($this->post('clientId'))) {
-            $clentId = $this->post('clientId');
-        } else {
-            $clentId = 0;
-        }
-
+        
+        $clentId = GetNumericData($this->post('clientId'));
         $clientName = $this->post('clientName');
         $contactNumber = $this->post('contactNo');
         $email = $this->post('email');
@@ -239,7 +233,7 @@ class User extends MY_Controller {
         $twitterURL = $this->post('twitterURL');
         $pinterestURL = $this->post('pinterestURL');
         $linkedInURL = $this->post('linkedInURL');
-        $active = $this->post('active');
+        $active = GetNumericData($this->post('active'));
         $serviceIdsOpted = $this->post('serviceIdsOpted');
         $userId = $this->user_data->id;
 
@@ -247,7 +241,7 @@ class User extends MY_Controller {
 
         $canShowGenericErrorMessageToUser = false;
         try {
-            $query = $this->db->query("call usp_SetClient('" . $clentId . "','" . $clientName . "', '" . $contactNumber . "', '" . $email . "','" . $websiteUrl . "','" . $facebookURL . "','" . $youtubeURL . "','" . $instagramURL . "','" . $twitterURL . "','" . $pinterestURL . "','" . $linkedInURL . "','" . $active . "','" . $serviceIdsOpted . "','" . $userId . "' ,@errorCode,@errorMessage);");
+            $query = $this->db->query("call usp_SetClient(" . $clentId . ",'" . $clientName . "', '" . $contactNumber . "', '" . $email . "','" . $websiteUrl . "','" . $facebookURL . "','" . $youtubeURL . "','" . $instagramURL . "','" . $twitterURL . "','" . $pinterestURL . "','" . $linkedInURL . "'," . $active . ",'" . $serviceIdsOpted . "'," . $userId . " ,@errorCode,@errorMessage);");
 //        echo $this->db->last_query();exit;
             $result = $query->result();
 
@@ -287,7 +281,7 @@ class User extends MY_Controller {
     public function changePassword_post() {
         $this->post = file_get_contents('php://input');
 
-        $userId = $this->post('userId');
+        $userId = GetNumericData($this->post('userId'));
         $oldPassword = $this->post('oldPassword');
         $newPassword = $this->post('newPassword');
 
@@ -451,7 +445,7 @@ class User extends MY_Controller {
     public function ResetPassword_post() {
         $this->post = file_get_contents('php://input');
 
-        $userId = $this->encrypt->decode($this->post('userId'));
+        $userId = GetNumericData($this->encrypt->decode($this->post('userId')));
 
         $newPassword = $this->post('newPassword');
 
@@ -461,7 +455,7 @@ class User extends MY_Controller {
             if ($userId == "") {
                 throw new Exception('Please Provide valid user Id');
             }
-            $query = $this->db->query("call usp_ResetPassword('" . $userId . "','" . $newPassword . "',@errorCode,@errorMessage);");
+            $query = $this->db->query("call usp_ResetPassword(" . $userId . ",'" . $newPassword . "',@errorCode,@errorMessage);");
 //            echo $this->db->last_query();exit;
             $result = $query->result();
 //            print_r($result);
