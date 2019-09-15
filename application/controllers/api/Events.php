@@ -241,10 +241,10 @@ class Events extends MY_Controller {
         $dMCompletedBy = $this->post('dMCompletedBy');
         $callingFrom = $this->post('callingFrom');
 
-        $query = $this->db->query("call usp_GetEvents(" . $eventId . ",'" . $eventName . "','" . $eventStatusId . "','" . $venue . "','" . $guests . "','" . $startDate_From . "','" . $startDate_To . "','" . $userId . "','" . $clientId . "','" . $orderByColumn . "','" . $dMCompletedBy . "','" . $callingFrom . "','" . $orderAscDesc . "','" . $pageLength . "','" . $pageIndex . "','" . $startingRowNumber . "',@totalRows ,@errorCode);");
+        $query = $this->db->query("call usp_GetEvents(" . $eventId . ",'" . $eventName . "'," . $eventStatusId . ",'" . $venue . "','" . $guests . "','" . $startDate_From . "','" . $startDate_To . "','" . $userId . "'," . $clientId . "," . $dMCompletedBy . "," . $callingFrom . "," . $orderByColumn . "," . $orderAscDesc . "," . $pageLength . "," . $pageIndex . "," . $startingRowNumber . ",@totalRows ,@errorCode);");
 //        $result = $query->result();
 //        print_r($result);exit;
-        print_r($this->db->last_query());exit;
+//        print_r($this->db->last_query());exit;
         if ($result > 0) {
             $output = [
                 'status' => '1',
