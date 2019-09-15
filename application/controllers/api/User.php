@@ -82,10 +82,11 @@ class User extends MY_Controller {
     public function getClients_post() {
         $userId = $this->user_data->id;
 //        $userdata = $this->Main_model->userdata();
-        $clientId=$this->post('clientId');
+        $clientId = $this->post('clientId');
+        $clientName = $this->post('clientName');
 
         if ($userId != "") {
-            $query = $this->db->query("call usp_GetClients('" . $clientId . "','" . $userId . "',@errorCode)");
+            $query = $this->db->query("call usp_GetClients('" . $clientId . "','" . $userId . "','" . $clientName . "',@errorCode)");
             $result = $query->result_array();
 
             if ($result > 0) {
@@ -125,7 +126,7 @@ class User extends MY_Controller {
         $roleId = $this->post('roleId');
 
         if ($userId != "") {
-            $query = $this->db->query("call usp_GetUsers('" . $userId . "','" . $clientId . "','".$userName."','".$roleId."',@errorCode)");
+            $query = $this->db->query("call usp_GetUsers(" . $userId . ",'" . $clientId . "','" . $userName . "','" . $roleId . "',@errorCode)");
             $result = $query->result_array();
             if ($result > 0) {
                 $output = [
@@ -360,22 +361,20 @@ class User extends MY_Controller {
             } else {
                 // success in DB
                 if ($result[0]->IsEmailExists == 1) {
-                     $subject = 'Reset Password';
-                     $link=base_url().'reset-password/'.$result[0]->GUIDToResetPassword;
-                $body = 'Dear User,<br /> Please Click bellow link to reset password ' . $link . '<br /><br />Thanks,<br />Ibridge Team';
+                    $subject = 'Reset Password';
+                    $link = base_url() . 'reset-password/' . $result[0]->GUIDToResetPassword;
+                    $body = 'Dear User,<br /> Please Click bellow link to reset password ' . $link . '<br /><br />Thanks,<br />Ibridge Team';
 //            $mail_result=$this->Main_model->send_email( $subject, $body, $email, '' );
-                        $message = "Email Sent with Resetpassword Link .";
-                    
+                    $message = "Email Sent with Resetpassword Link .";
+                } else {
+                    $message = "Email Sent with Resetpassword Link";
                 }
-                else {
-                        $message = "Email Sent with Resetpassword Link";
-                    }
                 $output = [
-                        'status' => '1',
-                        'Message' => $message,
-                        'Row count' => $this->db->affected_rows(),
-                    ];
-                    $this->set_response($output, REST_Controller::HTTP_OK);
+                    'status' => '1',
+                    'Message' => $message,
+                    'Row count' => $this->db->affected_rows(),
+                ];
+                $this->set_response($output, REST_Controller::HTTP_OK);
             }
         } catch (Exception $e) {
 
@@ -390,7 +389,7 @@ class User extends MY_Controller {
             $this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
         }
     }
-    
+
     public function ValidateRequestToResetPassword_post() {
         $this->post = file_get_contents('php://input');
 
@@ -419,22 +418,21 @@ class User extends MY_Controller {
             } else {
                 // success in DB
                 if ($result[0]->IsValidRequest == 1) {
-                        $status=1;
-                        $message = "Valid Request";
-                        $userId= $this->encrypt->encode($result[0]->UserId); //$this->encrypt->encode($result[0]->userId)
+                    $status = 1;
+                    $message = "Valid Request";
+                    $userId = $this->encrypt->encode($result[0]->UserId); //$this->encrypt->encode($result[0]->userId)
+                } else {
+                    $status = 0;
+                    $message = "Invalid Request, please Reset your password Again";
+                    $userId = null;
                 }
-                else {
-                        $status=0;
-                        $message = "Invalid Request, please Reset your password Again";
-                        $userId= null;
-                    }
-                $output = [ 
-                        'status' => $status,
-                        'Message' => $message,
-                        'Row count' => $this->db->affected_rows(),
-                        'userId'=>$userId,
-                    ];
-                    $this->set_response($output, REST_Controller::HTTP_OK);
+                $output = [
+                    'status' => $status,
+                    'Message' => $message,
+                    'Row count' => $this->db->affected_rows(),
+                    'userId' => $userId,
+                ];
+                $this->set_response($output, REST_Controller::HTTP_OK);
             }
         } catch (Exception $e) {
 
@@ -449,20 +447,21 @@ class User extends MY_Controller {
             $this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
         }
     }
+
     public function ResetPassword_post() {
         $this->post = file_get_contents('php://input');
 
         $userId = $this->encrypt->decode($this->post('userId'));
 
-        $newPassword=$this->post('newPassword');
-        
+        $newPassword = $this->post('newPassword');
+
 
         $canShowGenericErrorMessageToUser = false;
         try {
-            if($userId ==""){
-             throw new Exception('Please Provide valid user Id');
+            if ($userId == "") {
+                throw new Exception('Please Provide valid user Id');
             }
-            $query = $this->db->query("call usp_ResetPassword('" . $userId . "','".$newPassword."',@errorCode,@errorMessage);");
+            $query = $this->db->query("call usp_ResetPassword('" . $userId . "','" . $newPassword . "',@errorCode,@errorMessage);");
 //            echo $this->db->last_query();exit;
             $result = $query->result();
 //            print_r($result);
@@ -479,13 +478,13 @@ class User extends MY_Controller {
                 }
             } else {
                 // success in DB
-                
-                $output = [ 
-                        'status' => '1',
-                        'Message' => "Your Password Changed Succesfully",
-                        'Row count' => $this->db->affected_rows(),
-                    ];
-                    $this->set_response($output, REST_Controller::HTTP_OK);
+
+                $output = [
+                    'status' => '1',
+                    'Message' => "Your Password Changed Succesfully",
+                    'Row count' => $this->db->affected_rows(),
+                ];
+                $this->set_response($output, REST_Controller::HTTP_OK);
             }
         } catch (Exception $e) {
 

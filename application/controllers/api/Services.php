@@ -15,7 +15,7 @@ class Services extends MY_Controller {
 //        $userdata = $this->Main_model->userdata();
         $clientId=$this->post('clientId');
         $callingFrom=$this->post('callingFrom');
-        $query = $this->db->query("call usp_GetClientServices(" . $this->user_data->id . "," . $clientId . ",'".$callingFrom."',@errorCode)");
+        $query = $this->db->query("call usp_GetClientServices(" . $this->user_data->id . "," . $clientId . ",". $callingFrom .",@errorCode)");
         $result = $query->result_array();
 
         if ($result > 0) {
