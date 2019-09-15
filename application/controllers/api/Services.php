@@ -13,8 +13,8 @@ class Services extends MY_Controller {
     public function clientServices_post() {
 
 //        $userdata = $this->Main_model->userdata();
-        $clientId=$this->post('clientId');
-        $callingFrom=$this->post('callingFrom');
+        $clientId=GetNumericData($this->post('clientId'));
+        $callingFrom=GetNumericData($this->post('callingFrom'));
         $query = $this->db->query("call usp_GetClientServices(" . $this->user_data->id . "," . $clientId . ",". $callingFrom .",@errorCode)");
         $result = $query->result_array();
 
@@ -64,11 +64,11 @@ class Services extends MY_Controller {
     public function getServices_post() {
         $this->post = file_get_contents('php://input');
 
-        $serviceId = $this->post('serviceId');
-        $serviceTypeId = $this->post('serviceTypeId');
+        $serviceId = GetNumericData($this->post('serviceId'));
+        $serviceTypeId = GetNumericData($this->post('serviceTypeId'));
         $serviceName = $this->post('serviceName');
 
-        $query = $this->db->query("call usp_GetServices('" . $serviceId . "','" . $serviceTypeId . "','" . $serviceName . "',@errorCode)");
+        $query = $this->db->query("call usp_GetServices(" . $serviceId . "," . $serviceTypeId . ",'" . $serviceName . "',@errorCode)");
 
         $result = $query->result_array();
 
@@ -93,14 +93,11 @@ class Services extends MY_Controller {
 
     public function manageService_post() {
         $this->post = file_get_contents('php://input');
-        if (!empty($this->post('serviceId'))) {
-            $serviceId = $this->post('serviceId');
-        } else {
-            $serviceId = -1;
-        }
-        $serviceTypeId = $this->post('serviceTypeId');
+        
+        $serviceId = GetNumericData($this->post('serviceId'));
+        $serviceTypeId = GetNumericData($this->post('serviceTypeId'));
         $serviceName = $this->post('serviceName');
-        $active = $this->post('active');
+        $active = GetNumericData($this->post('active'));
         $userId = $this->user_data->id;
    
            
