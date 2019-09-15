@@ -36,20 +36,17 @@ class Events extends MY_Controller {
 
     public function manageEvent_post() {
         $this->post = file_get_contents('php://input');
-        if ($this->post('eventId') != "") {
-            $eventId = $this->post('eventId');
-        } else {
-            $eventId = 0;  //As per SP
-        }
+
+        $eventId = GetNumericData($this->post('eventId'));
         $photoUploadedPath = $vedioUploadedPath = "";
         /* INSERT INTO tblEvents */
         $userId = $this->user_data->id;
 
 //        $userdata = $this->Main_model->userdata();
-        $clientId = $this->post('clientId');
+        $clientId = GetNumericData($this->post('clientId'));
 
         $eventName = $this->post('eventName');
-        $eventCategoryId = $this->post('eventCategoryId');
+        $eventCategoryId = GetNumericData($this->post('eventCategoryId'));
         $startDateTime = $this->post('startDateTime');
         $endDateTime = $this->post('endDateTime');
         $venue = $this->post('venue');
@@ -57,13 +54,13 @@ class Events extends MY_Controller {
         $speakers = $this->post('speakers');
         $participants = $this->post('participants');
         $eventDescription = $this->post('eventDescription');
-        $eventStatusId = $this->post('eventStatusId');
+        $eventStatusId = GetNumericData($this->post('eventStatusId'));
 
 
         /* COMMA SEPERATED SERVICES IDs WITHOUT SPACES IN BETWEEN (inserted to TEMPORARY TABLE tmpTblServicesOpted) */
         $serviceIdsOpted = $this->post('serviceIdsOpted');
 
-        $isSubmitedForDM = $this->post('isSubmitedForDM');
+        $isSubmitedForDM = GetNumericData($this->post('isSubmitedForDM'));
         $eventStatusDescription = $this->post('eventStatusDescription');
 
         /* when event is postponed */
@@ -82,11 +79,11 @@ class Events extends MY_Controller {
         $videoUploadedPath = $this->post('videoUploadedPath');
 
 
-        $vedioServiceId = $this->post('vedioUploadedServiceId');
+        $vedioServiceId = GetNumericData($this->post('vedioUploadedServiceId'));
 
         $canShowGenericErrorMessageToUser = false;
         try {
-            $query = $this->db->query("call usp_SetEvent('" . $eventId . "','" . $userId . "','" . $clientId . "','" . $eventName . "','" . $eventCategoryId . "','" . $startDateTime . "','" . $endDateTime . "','" . $venue . "','" . $guests . "','" . $speakers . "','" . $participants . "','" . $eventDescription . "','" . $eventStatusId . "','" . $serviceIdsOpted . "','" . $isSubmitedForDM . "','" . $eventStatusDescription . "','" . $newStartDateTime . "','" . $newEndDateTime . "','" . $photoUploadedPath . "','" . $videoUploadedPath . "',@errorCode,@errorMessage);");
+            $query = $this->db->query("call usp_SetEvent(" . $eventId . ",'" . $userId . "'," . $clientId . ",'" . $eventName . "'," . $eventCategoryId . ",'" . $startDateTime . "','" . $endDateTime . "','" . $venue . "','" . $guests . "','" . $speakers . "','" . $participants . "','" . $eventDescription . "'," . $eventStatusId . ",'" . $serviceIdsOpted . "'," . $isSubmitedForDM . ",'" . $eventStatusDescription . "','" . $newStartDateTime . "','" . $newEndDateTime . "','" . $photoUploadedPath . "','" . $videoUploadedPath . "',@errorCode,@errorMessage);");
 //            echo $this->db->last_query();exit;
             $result = $query->result();
 
@@ -164,7 +161,7 @@ class Events extends MY_Controller {
 
 
 //        $userdata = $this->Main_model->userdata();
-        $clientId=$this->post('clientId');
+        $clientId=GetNumericData($this->post('clientId'));
         $query = $this->db->query("call usp_GetEventNamesForAjaxSearch('" . $event_name . "'," . $clientId . ",@errorCode)");
         $result = $query->result_array();
 
@@ -190,7 +187,7 @@ class Events extends MY_Controller {
     public function eventSummary_post() {
 
 //        $userdata = $this->Main_model->userdata();
-        $clientId=$this->post('clientId');
+        $clientId=GetNumericData($this->post('clientId'));
         $query = $this->db->query("call usp_GetEventsSummary(" . $this->user_data->id . "," . $clientId . ",@errorCode)");
         $result = $query->result_array();
 
@@ -263,21 +260,16 @@ class Events extends MY_Controller {
     
     public function getEventServices_post() {
         $this->post = file_get_contents('php://input');
-        if ($this->post('eventId') != "") {
-            $eventId = $this->post('eventId');
-        } else {
-            $eventId = 0;  //As per SP
-        }
-       
-
+            
+        $eventId = GetNumericData($this->post('eventId'));
         $userId = $this->user_data->id;
 
 //        $userdata = $this->Main_model->userdata();
-        $clientId = $this->post('clientId');
+        $clientId = GetNumericData($this->post('clientId'));
        
-        $callingFrom = $this->post('callingFrom');
+        $callingFrom = GetNumericData($this->post('callingFrom'));
 
-        $query = $this->db->query("call usp_GetEventServices('" . $eventId . "'," . $userId . ",'" . $clientId . "','" . $callingFrom . "',@errorCode);");
+        $query = $this->db->query("call usp_GetEventServices(" . $eventId . "," . $userId . "," . $clientId . "," . $callingFrom . ",@errorCode);");
         $result = $query->result();
 //        print_r($this->db->last_query());exit;
         if ($result > 0) {
@@ -302,19 +294,15 @@ class Events extends MY_Controller {
     
     public function getEventReleaseReasons_post() {
         $this->post = file_get_contents('php://input');
-        if ($this->post('eventId') != "") {
-            $eventId = $this->post('eventId');
-        } else {
-            $eventId = 0;  //As per SP
-        }
+      
        
-
+        $eventId = GetNumericData($this->post('eventId'));
         $userId = $this->user_data->id;
 
        
-        $callingFrom = $this->post('callingFrom');
+        $callingFrom = GetNumericData($this->post('callingFrom'));
 
-        $query = $this->db->query("call usp_GetEventReleaseReasons('" . $eventId . "'," . $userId . ",'" . $callingFrom . "',@errorCode);");
+        $query = $this->db->query("call usp_GetEventReleaseReasons(" . $eventId . "," . $userId . "," . $callingFrom . ",@errorCode);");
         $result = $query->result();
 //        print_r($this->db->last_query());exit;
         if ($result > 0) {
@@ -339,16 +327,16 @@ class Events extends MY_Controller {
     public function dmmanageEvent_post() {
         $this->post = file_get_contents('php://input');
 
-        $eventId = $this->post('eventId');
+        $eventId = GetNumericData($this->post('eventId'));
 
 
 //        $userdata = $this->Main_model->userdata();
-        $clientId = $this->post('clientId');
-        $eventStatusId = $this->post('eventStatusId');
+        $clientId = GetNumericData($this->post('clientId'));
+        $eventStatusId = GetNumericData($this->post('eventStatusId'));
         $eventServiceIdsAndData = $this->post('eventServiceIdsAndData'); //1~@~2~@~dmcheck#@#1~@~3~@~dmcheck
 
         $eventName = $this->post('eventName');
-        $eventCategoryId = $this->post('eventCategoryId');
+        $eventCategoryId = GetNumericData($this->post('eventCategoryId'));
         $startDateTime = $this->post('startDateTime');
         $endDateTime = $this->post('endDateTime');
         $venue = $this->post('venue');
@@ -357,9 +345,9 @@ class Events extends MY_Controller {
         $participants = $this->post('participants');
         $eventDescription = $this->post('eventDescription');
 
-        $isDMCompleted = $this->post('isDMCompleted');
+        $isDMCompleted = GetNumericData($this->post('isDMCompleted'));
         $DMComments = $this->post('DMComments');
-        $isEventLockReleased = $this->post('isEventLockReleased');
+        $isEventLockReleased = GetNumericData($this->post('isEventLockReleased'));
         $eventLockReleaseReason = $this->post('eventLockReleaseReason');
 
 
@@ -381,7 +369,7 @@ class Events extends MY_Controller {
         //code end
         $canShowGenericErrorMessageToUser = false;
         try {
-            $query = $this->db->query("call usp_SetEventByDMExecutive(" . $eventId . "," . $clientId . "," . $eventStatusId . ",'" . trim($eventServiceIdsAndData) . "','" . $eventName . "','" . $eventCategoryId . "','" . $startDateTime . "','" . $endDateTime . "','" . $venue . "','" . $guests . "','" . $speakers . "','" . $participants . "','" . $eventDescription . "','" . $isDMCompleted . "','" . $DMComments . "'," . $isEventLockReleased . ",'" . $eventLockReleaseReason . "'," . $userId . ",@errorCode,@errorMessage);");
+            $query = $this->db->query("call usp_SetEventByDMExecutive(" . $eventId . "," . $clientId . "," . $eventStatusId . ",'" . trim($eventServiceIdsAndData) . "','" . $eventName . "'," . $eventCategoryId . ",'" . $startDateTime . "','" . $endDateTime . "','" . $venue . "','" . $guests . "','" . $speakers . "','" . $participants . "','" . $eventDescription . "'," . $isDMCompleted . ",'" . $DMComments . "'," . $isEventLockReleased . ",'" . $eventLockReleaseReason . "'," . $userId . ",@errorCode,@errorMessage);");
 //            echo $this->db->last_query();exit;
             $result = $query->result();
 //            print_r($result);
@@ -467,8 +455,8 @@ class Events extends MY_Controller {
     public function GetEventDataForReport_post() {
 
 //        $userdata = $this->Main_model->userdata();
-        $eventId=$this->post('eventId');
-        $query = $this->db->query("call usp_GetEventDataForReport('" . $eventId . "',@errorCode)");
+        $eventId=GetNumericData($this->post('eventId'));
+        $query = $this->db->query("call usp_GetEventDataForReport(" . $eventId . ",@errorCode)");
         $result = $query->result_array();
 
         if ($result > 0) {
@@ -492,8 +480,8 @@ class Events extends MY_Controller {
     public function GetEventServiceDataForReport_post() {
 
 //        $userdata = $this->Main_model->userdata();
-        $eventId=$this->post('eventId');
-        $query = $this->db->query("call usp_GetEventServiceDataForReport('" . $eventId . "',@errorCode)");
+        $eventId=GetNumericData($this->post('eventId'));
+        $query = $this->db->query("call usp_GetEventServiceDataForReport(" . $eventId . "s,@errorCode)");
         $result = $query->result_array();
 
         if ($result > 0) {
@@ -517,8 +505,8 @@ class Events extends MY_Controller {
     public function GetEventReleaseDataForReport_post() {
 
 //        $userdata = $this->Main_model->userdata();
-        $eventId=$this->post('eventId');
-        $query = $this->db->query("call usp_GetEventReleaseDataForReport('" . $eventId . "',@errorCode)");
+        $eventId=GetNumericData($this->post('eventId'));
+        $query = $this->db->query("call usp_GetEventReleaseDataForReport(" . $eventId . ",@errorCode)");
         $result = $query->result_array();
 
         if ($result > 0) {
