@@ -121,9 +121,11 @@ class User extends MY_Controller {
 
 
         $clientId = $this->post('clientId');
+        $userName = $this->post('userName');
+        $roleId = $this->post('roleId');
 
         if ($userId != "") {
-            $query = $this->db->query("call usp_GetUsers('" . $userId . "','" . $clientId . "',@errorCode)");
+            $query = $this->db->query("call usp_GetUsers('" . $userId . "','" . $clientId . "','".$userName."','".$roleId."',@errorCode)");
             $result = $query->result_array();
             if ($result > 0) {
                 $output = [
