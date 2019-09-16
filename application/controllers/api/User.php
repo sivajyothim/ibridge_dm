@@ -14,7 +14,7 @@ class User extends MY_Controller {
     public function userData_get() {
         $userId = $this->user_data->id;
         if ($userId != "") {
-            $query = $this->db->query("call usp_GetUserRoleClientDetails('" . $userId . "',@errorCode)");
+            $query = $this->db->query("call usp_GetUserRoleClientDetails(" . $userId . ",@errorCode)");
             $result = $query->result_array();
 
             if ($result > 0) {
@@ -48,7 +48,7 @@ class User extends MY_Controller {
     public function userClients_get() {
         $userId = $this->user_data->id;
         if ($userId != "") {
-            $query = $this->db->query("call usp_GetUserClients('" . $userId . "',@errorCode)");
+            $query = $this->db->query("call usp_GetUserClients(" . $userId . ",@errorCode)");
             $result = $query->result_array();
 
             if ($result > 0) {
@@ -118,9 +118,10 @@ class User extends MY_Controller {
     }
 
     public function getUsers_post() {
-        $userId = $this->user_data->id;
+//        $userId = $this->user_data->id;
 
 
+        $userId = GetNumericData($this->post('userId'));
         $clientId = GetNumericData($this->post('clientId'));
         $userName = $this->post('userName');
         $roleId = GetNumericData($this->post('roleId'));
@@ -196,7 +197,7 @@ class User extends MY_Controller {
             } else {
                 $subject = $disignation . ' Login Credentials';
                 $body = 'Dear User,<br /> Please find your ' . $disignation . ' login credentials below. <br /><br /> Username : ' . $name . '<br /> Password : ' . $password . '<br /><br />Thanks,<br />Ibridge Team';
-//            $mail_result=$this->Main_model->send_email( $subject, $body, $email, '' );
+//                $mail_result=$this->Main_model->send_email( $subject, $body, $email, '' );
                 // success in DB
                 $output = [
                     'status' => '1',

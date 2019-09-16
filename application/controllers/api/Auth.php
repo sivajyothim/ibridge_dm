@@ -65,7 +65,9 @@ class Auth extends MY_Controller {
             $output=[
                 'status' => '1',
                 'Message'=>'Login Success',
-                "token"=>$token
+                "token"=>$token,
+                'User Id' => $result[0]->UserId,
+                'Is Default Password Changed'=>$result[0]->IsDefaultPasswordChanged,
                     ];
             $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
        
