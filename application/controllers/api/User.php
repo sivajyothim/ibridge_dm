@@ -13,31 +13,43 @@ class User extends MY_Controller {
 
     public function userData_get() {
         $userId = $this->user_data->id;
-        if ($userId != "") {
-            $query = $this->db->query("call usp_GetUserRoleClientDetails(" . $userId . ",@errorCode)");
-            $result = $query->result_array();
 
-            if ($result > 0) {
-                $output = [
-                    'status' => '1',
-                    'Message' => 'Data Retrived Succesfully',
-                    'Row count' => count($result),
-                    'Responce' => $result,
-                ];
-                $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
+        $canShowGenericErrorMessageToUser = false;
+        try {
+            $query = $this->db->query("call usp_GetUserRoleClientDetails(" . $userId . ",@errorCode)");
+            if (!$query) {
+                $canShowGenericErrorMessageToUser = true;
+                $error = $this->db->error();
+                throw new Exception('Query error:' . $error['code'] . ' ' . $error['message']);
             } else {
-                $output = [
-                    'status' => '0',
-                    'Message' => 'No data found',
-                    'Row count' => 0,
-                    'Responce' => 0,
-                ];
-                $this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
+                $result = $query->result();
+                if (isset($result[0]->ErrorCode) && $result[0]->ErrorCode > 0) {
+                    if ($result[0]->ErrorCode == 45000) {
+                        // error in DB - CUSTOM MESSAGE
+                        throw new Exception(substr($result[0]->ErrorMessage, strpos($result[0]->ErrorMessage, ":") + 1));
+                    } else {
+                        // error in DB - Generic Message
+                        $canShowGenericErrorMessageToUser = true;
+                        throw new Exception($result[0]->ErrorMessage);
+                    }
+                } else {
+                    // success in DB
+                    $output = [
+                        'status' => '1',
+                        'Message' => 'Data Retrived Succesfully',
+                        'Row count' => count($result),
+                        'Responce' => $result,
+                    ];
+                    $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
+                }
             }
-        } else {
+        } catch (Exception $e) {
+
+            log_message('error', 'Database:' . $e->getMessage());
+
             $output = [
                 'status' => '0',
-                'Message' => 'Invalid Data Provided',
+                'Message' => $canShowGenericErrorMessageToUser == true ? GENERIC_ERROR_MESSAGE : $e->getMessage(),
                 'Row count' => 0,
                 'Responce' => 0,
             ];
@@ -47,31 +59,43 @@ class User extends MY_Controller {
 
     public function userClients_get() {
         $userId = $this->user_data->id;
-        if ($userId != "") {
-            $query = $this->db->query("call usp_GetUserClients(" . $userId . ",@errorCode)");
-            $result = $query->result_array();
 
-            if ($result > 0) {
-                $output = [
-                    'status' => '1',
-                    'Message' => 'Data Retrived Succesfully',
-                    'Row count' => count($result),
-                    'Responce' => $result,
-                ];
-                $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
+        $canShowGenericErrorMessageToUser = false;
+        try {
+            $query = $this->db->query("call usp_GetUserClients(" . $userId . ",@errorCode)");
+            if (!$query) {
+                $canShowGenericErrorMessageToUser = true;
+                $error = $this->db->error();
+                throw new Exception('Query error:' . $error['code'] . ' ' . $error['message']);
             } else {
-                $output = [
-                    'status' => '0',
-                    'Message' => 'No data found',
-                    'Row count' => 0,
-                    'Responce' => 0,
-                ];
-                $this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
+                $result = $query->result();
+                if (isset($result[0]->ErrorCode) && $result[0]->ErrorCode > 0) {
+                    if ($result[0]->ErrorCode == 45000) {
+                        // error in DB - CUSTOM MESSAGE
+                        throw new Exception(substr($result[0]->ErrorMessage, strpos($result[0]->ErrorMessage, ":") + 1));
+                    } else {
+                        // error in DB - Generic Message
+                        $canShowGenericErrorMessageToUser = true;
+                        throw new Exception($result[0]->ErrorMessage);
+                    }
+                } else {
+                    // success in DB
+                    $output = [
+                        'status' => '1',
+                        'Message' => 'Data Retrived Succesfully',
+                        'Row count' => count($result),
+                        'Responce' => $result,
+                    ];
+                    $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
+                }
             }
-        } else {
+        } catch (Exception $e) {
+
+            log_message('error', 'Database:' . $e->getMessage());
+
             $output = [
                 'status' => '0',
-                'Message' => 'Invalid Data Provided',
+                'Message' => $canShowGenericErrorMessageToUser == true ? GENERIC_ERROR_MESSAGE : $e->getMessage(),
                 'Row count' => 0,
                 'Responce' => 0,
             ];
@@ -84,37 +108,51 @@ class User extends MY_Controller {
 //        $userdata = $this->Main_model->userdata();
         $clientId = GetNumericData($this->post('clientId'));
         $clientName = $this->post('clientName');
-
-        if ($userId != "") {
+        //////
+         $canShowGenericErrorMessageToUser = false;
+        try {
             $query = $this->db->query("call usp_GetClients(" . $clientId . "," . $userId . ",'" . $clientName . "',@errorCode)");
-            $result = $query->result_array();
-
-            if ($result > 0) {
-                $output = [
-                    'status' => '1',
-                    'Message' => 'Data Retrived Succesfully',
-                    'Row count' => count($result),
-                    'Responce' => $result,
-                ];
-                $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
+            if (!$query) {
+                $canShowGenericErrorMessageToUser = true;
+                $error   = $this->db->error();
+                throw new Exception('Query error:'.$error['code'].' '.$error['message']);
             } else {
-                $output = [
-                    'status' => '0',
-                    'Message' => 'No data found',
-                    'Row count' => 0,
-                    'Responce' => 0,
-                ];
-                $this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
+                 $result = $query->result();
+                if (isset($result[0]->ErrorCode) && $result[0]->ErrorCode > 0) {
+                    if ($result[0]->ErrorCode == 45000) {
+                        // error in DB - CUSTOM MESSAGE
+                        throw new Exception(substr($result[0]->ErrorMessage, strpos($result[0]->ErrorMessage, ":") + 1));
+                    } else {
+                        // error in DB - Generic Message
+                        $canShowGenericErrorMessageToUser = true;
+                        throw new Exception($result[0]->ErrorMessage);
+                    }
+                } else {
+                    // success in DB
+                        $output = [
+                            'status' => '1',
+                            'Message' => 'Data Retrived Succesfully',
+                            'Row count' => count($result),
+                            'Responce' => $result,
+                        ];
+                        $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
+                     
+                }
             }
-        } else {
+        } catch (Exception $e) {
+
+            log_message('error', 'Database:' . $e->getMessage());
+
             $output = [
                 'status' => '0',
-                'Message' => 'Invalid Data Provided',
+                'Message' => $canShowGenericErrorMessageToUser == true ? GENERIC_ERROR_MESSAGE : $e->getMessage(),
                 'Row count' => 0,
                 'Responce' => 0,
             ];
             $this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
         }
+        //////
+        
     }
 
     public function getUsers_post() {
@@ -126,31 +164,44 @@ class User extends MY_Controller {
         $userName = $this->post('userName');
         $roleId = GetNumericData($this->post('roleId'));
 
-        if ($userId != "") {
+         $canShowGenericErrorMessageToUser = false;
+        try {
             $query = $this->db->query("call usp_GetUsers(" . $userId . "," . $clientId . ",'" . $userName . "'," . $roleId . ",@errorCode)");
-//            echo $this->db->last_query();exit;
-            $result = $query->result_array();
-            if ($result > 0) {
-                $output = [
-                    'status' => '1',
-                    'Message' => 'Data Retrived Succesfully',
-                    'Row count' => count($result),
-                    'Responce' => $result,
-                ];
-                $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
+            echo $this->db->last_query();exit;
+            if (!$query) {
+                $canShowGenericErrorMessageToUser = true;
+                $error   = $this->db->error();
+                throw new Exception('Query error:'.$error['code'].' '.$error['message']);
             } else {
-                $output = [
-                    'status' => '0',
-                    'Message' => 'No data found',
-                    'Row count' => 0,
-                    'Responce' => 0,
-                ];
-                $this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
+                 $result = $query->result();
+                if (isset($result[0]->ErrorCode) && $result[0]->ErrorCode > 0) {
+                    if ($result[0]->ErrorCode == 45000) {
+                        // error in DB - CUSTOM MESSAGE
+                        throw new Exception(substr($result[0]->ErrorMessage, strpos($result[0]->ErrorMessage, ":") + 1));
+                    } else {
+                        // error in DB - Generic Message
+                        $canShowGenericErrorMessageToUser = true;
+                        throw new Exception($result[0]->ErrorMessage);
+                    }
+                } else {
+                    // success in DB
+                        $output = [
+                            'status' => '1',
+                            'Message' => 'Data Retrived Succesfully',
+                            'Row count' => count($result),
+                            'Responce' => $result,
+                        ];
+                        $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
+                     
+                }
             }
-        } else {
+        } catch (Exception $e) {
+
+            log_message('error', 'Database:' . $e->getMessage());
+
             $output = [
                 'status' => '0',
-                'Message' => 'Invalid Data Provided',
+                'Message' => $canShowGenericErrorMessageToUser == true ? GENERIC_ERROR_MESSAGE : $e->getMessage(),
                 'Row count' => 0,
                 'Responce' => 0,
             ];
@@ -160,7 +211,7 @@ class User extends MY_Controller {
 
     public function manageUser_post() {
         $this->post = file_get_contents('php://input');
-       
+
         $userId = GetNumericData($this->post('userId'));
         $roleId = GetNumericData($this->post('roleId'));
         $clientId = GetNumericData($this->post('clientId'));
@@ -222,7 +273,7 @@ class User extends MY_Controller {
 
     public function manageClient_post() {
         $this->post = file_get_contents('php://input');
-        
+
         $clentId = GetNumericData($this->post('clientId'));
         $clientName = $this->post('clientName');
         $contactNumber = $this->post('contactNo');
