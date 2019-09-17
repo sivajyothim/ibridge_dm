@@ -298,15 +298,15 @@ class Events extends MY_Controller {
     public function getEvent_post() {
         $canShowGenericErrorMessageToUser = false;
         $this->post = file_get_contents('php://input');
-       
-        $this->form_validation->set_rules('callingFrom', 'callingFrom', 'trim|required|max_length[49]');
+//       print_r($this->post);exit;
+        $this->form_validation->set_rules('callingFrom', 'callingFrom', 'required');
         try {
             
-        if( !$this->form_validation->run() ){
-        throw new Exception(validation_errors());
-
-        }
-        
+//        if( ! $this->form_validation->run() ){
+//        throw new Exception(validation_errors());
+//
+//        }
+//        exit;
         $eventId = GetNumericData($this->post('eventId'));
         $eventName = $this->post('eventName');
         $eventStatusId = GetNumericData($this->post('eventStatusId'));
