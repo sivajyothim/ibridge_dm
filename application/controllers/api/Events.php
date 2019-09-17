@@ -12,16 +12,16 @@ class Events extends MY_Controller {
 
     public function eventCategories_get() {
 
-        
+
         $canShowGenericErrorMessageToUser = false;
         try {
-        $query = $this->db->query("call usp_GetEventCategories(@errorCode )");
+            $query = $this->db->query("call usp_GetEventCategories(@errorCode )");
             if (!$query) {
                 $canShowGenericErrorMessageToUser = true;
-                $error   = $this->db->error();
-                throw new Exception('Query error:'.$error['code'].' '.$error['message']);
+                $error = $this->db->error();
+                throw new Exception('Query error:' . $error['code'] . ' ' . $error['message']);
             } else {
-                 $result = $query->result();
+                $result = $query->result();
                 if (isset($result[0]->ErrorCode) && $result[0]->ErrorCode > 0) {
                     if ($result[0]->ErrorCode == 45000) {
                         // error in DB - CUSTOM MESSAGE
@@ -33,14 +33,13 @@ class Events extends MY_Controller {
                     }
                 } else {
                     // success in DB
-                        $output = [
-                            'status' => '1',
-                            'Message' => 'Data Retrived Succesfully',
-                            'Row count' => count($result),
-                            'Responce' => $result,
-                        ];
-                        $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
-                     
+                    $output = [
+                        'status' => '1',
+                        'Message' => 'Data Retrived Succesfully',
+                        'Row count' => count($result),
+                        'Responce' => $result,
+                    ];
+                    $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
                 }
             }
         } catch (Exception $e) {
@@ -106,7 +105,7 @@ class Events extends MY_Controller {
 
         $canShowGenericErrorMessageToUser = false;
         try {
-            $query = $this->db->query("call usp_SetEvent(" . $eventId . ",'" . $userId . "'," . $clientId . ",'" . $eventName . "'," . $eventCategoryId . ",'" . $startDateTime . "','" . $endDateTime . "','" . $venue . "','" . $guests . "','" . $speakers . "','" . $participants . "','" . $eventDescription . "'," . $eventStatusId . ",'" . $serviceIdsOpted . "'," . $isSubmitedForDM . ",'" . $eventStatusDescription . "','" . $newStartDateTime . "','" . $newEndDateTime . "','" . $photoUploadedPath . "','" . $videoUploadedPath . "',@errorCode,@errorMessage);");
+            $query = $this->db->query("call usp_SetEvent(" . $eventId . "," . $userId . "," . $clientId . ",'" . $eventName . "'," . $eventCategoryId . ",'" . $startDateTime . "','" . $endDateTime . "','" . $venue . "','" . $guests . "','" . $speakers . "','" . $participants . "','" . $eventDescription . "'," . $eventStatusId . ",'" . $serviceIdsOpted . "'," . $isSubmitedForDM . ",'" . $eventStatusDescription . "','" . $newStartDateTime . "','" . $newEndDateTime . "','" . $photoUploadedPath . "','" . $videoUploadedPath . "',@errorCode,@errorMessage);");
 //            echo $this->db->last_query();exit;
             $result = $query->result();
 
@@ -156,21 +155,42 @@ class Events extends MY_Controller {
 
     public function eventStatus_get() {
 
-        $query = $this->db->query("call usp_GetEventStatusList(@errorCode )");
-        $result = $query->result_array();
+        $canShowGenericErrorMessageToUser = false;
+        try {
+            $query = $this->db->query("call usp_GetEventStatusList(@errorCode )");
+            if (!$query) {
+                $canShowGenericErrorMessageToUser = true;
+                $error = $this->db->error();
+                throw new Exception('Query error:' . $error['code'] . ' ' . $error['message']);
+            } else {
+                $result = $query->result();
+                if (isset($result[0]->ErrorCode) && $result[0]->ErrorCode > 0) {
+                    if ($result[0]->ErrorCode == 45000) {
+                        // error in DB - CUSTOM MESSAGE
+                        throw new Exception(substr($result[0]->ErrorMessage, strpos($result[0]->ErrorMessage, ":") + 1));
+                    } else {
+                        // error in DB - Generic Message
+                        $canShowGenericErrorMessageToUser = true;
+                        throw new Exception($result[0]->ErrorMessage);
+                    }
+                } else {
+                    // success in DB
+                    $output = [
+                        'status' => '1',
+                        'Message' => 'Data Retrived Succesfully',
+                        'Row count' => count($result),
+                        'Responce' => $result,
+                    ];
+                    $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
+                }
+            }
+        } catch (Exception $e) {
 
-        if ($result > 0) {
-            $output = [
-                'status' => '1',
-                'Message' => 'Data Retrived Succesfully',
-                'Row count' => count($result),
-                'Responce' => $result,
-            ];
-            $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
-        } else {
+            log_message('error', 'Database:' . $e->getMessage());
+
             $output = [
                 'status' => '0',
-                'Message' => 'No data found',
+                'Message' => $canShowGenericErrorMessageToUser == true ? GENERIC_ERROR_MESSAGE : $e->getMessage(),
                 'Row count' => 0,
                 'Responce' => 0,
             ];
@@ -182,24 +202,45 @@ class Events extends MY_Controller {
         $this->post = file_get_contents('php://input');
         $event_name = $this->post('eventName');
 
-
 //        $userdata = $this->Main_model->userdata();
-        $clientId=GetNumericData($this->post('clientId'));
-        $query = $this->db->query("call usp_GetEventNamesForAjaxSearch('" . $event_name . "'," . $clientId . ",@errorCode)");
-        $result = $query->result_array();
+        $clientId = GetNumericData($this->post('clientId'));
+        $canShowGenericErrorMessageToUser = false;
+        try {
+            $query = $this->db->query("call usp_GetEventNamesForAjaxSearch('" . $event_name . "'," . $clientId . ",@errorCode)");
+//            echo $this->db->last_query();exit;
+            if (!$query) {
+                $canShowGenericErrorMessageToUser = true;
+                $error = $this->db->error();
+                throw new Exception('Query error:' . $error['code'] . ' ' . $error['message']);
+            } else {
+                $result = $query->result();
+                if (isset($result[0]->ErrorCode) && $result[0]->ErrorCode > 0) {
+                    if ($result[0]->ErrorCode == 45000) {
+                        // error in DB - CUSTOM MESSAGE
+                        throw new Exception(substr($result[0]->ErrorMessage, strpos($result[0]->ErrorMessage, ":") + 1));
+                    } else {
+                        // error in DB - Generic Message
+                        $canShowGenericErrorMessageToUser = true;
+                        throw new Exception($result[0]->ErrorMessage);
+                    }
+                } else {
+                    // success in DB
+                    $output = [
+                        'status' => '1',
+                        'Message' => 'Data Retrived Succesfully',
+                        'Row count' => count($result),
+                        'Responce' => $result,
+                    ];
+                    $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
+                }
+            }
+        } catch (Exception $e) {
 
-        if ($result > 0) {
-            $output = [
-                'status' => '1',
-                'Message' => 'Data Retrived Succesfully',
-                'Row count' => count($result),
-                'Responce' => $result,
-            ];
-            $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
-        } else {
+            log_message('error', 'Database:' . $e->getMessage());
+
             $output = [
                 'status' => '0',
-                'Message' => 'No data found',
+                'Message' => $canShowGenericErrorMessageToUser == true ? GENERIC_ERROR_MESSAGE : $e->getMessage(),
                 'Row count' => 0,
                 'Responce' => 0,
             ];
@@ -210,22 +251,43 @@ class Events extends MY_Controller {
     public function eventSummary_post() {
 
 //        $userdata = $this->Main_model->userdata();
-        $clientId=GetNumericData($this->post('clientId'));
-        $query = $this->db->query("call usp_GetEventsSummary(" . $this->user_data->id . "," . $clientId . ",@errorCode)");
-        $result = $query->result_array();
+        $clientId = GetNumericData($this->post('clientId'));
+        $canShowGenericErrorMessageToUser = false;
+        try {
+            $query = $this->db->query("call usp_GetEventsSummary(" . $this->user_data->id . "," . $clientId . ",@errorCode)");
+            if (!$query) {
+                $canShowGenericErrorMessageToUser = true;
+                $error = $this->db->error();
+                throw new Exception('Query error:' . $error['code'] . ' ' . $error['message']);
+            } else {
+                $result = $query->result();
+                if (isset($result[0]->ErrorCode) && $result[0]->ErrorCode > 0) {
+                    if ($result[0]->ErrorCode == 45000) {
+                        // error in DB - CUSTOM MESSAGE
+                        throw new Exception(substr($result[0]->ErrorMessage, strpos($result[0]->ErrorMessage, ":") + 1));
+                    } else {
+                        // error in DB - Generic Message
+                        $canShowGenericErrorMessageToUser = true;
+                        throw new Exception($result[0]->ErrorMessage);
+                    }
+                } else {
+                    // success in DB
+                    $output = [
+                        'status' => '1',
+                        'Message' => 'Data Retrived Succesfully',
+                        'Row count' => count($result),
+                        'Responce' => $result,
+                    ];
+                    $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
+                }
+            }
+        } catch (Exception $e) {
 
-        if ($result > 0) {
-            $output = [
-                'status' => '1',
-                'Message' => 'Data Retrived Succesfully',
-                'Row count' => count($result),
-                'Responce' => $result,
-            ];
-            $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
-        } else {
+            log_message('error', 'Database:' . $e->getMessage());
+
             $output = [
                 'status' => '0',
-                'Message' => 'No data found',
+                'Message' => $canShowGenericErrorMessageToUser == true ? GENERIC_ERROR_MESSAGE : $e->getMessage(),
                 'Row count' => 0,
                 'Responce' => 0,
             ];
@@ -234,9 +296,18 @@ class Events extends MY_Controller {
     }
 
     public function getEvent_post() {
+        $canShowGenericErrorMessageToUser = false;
         $this->post = file_get_contents('php://input');
+       
+        $this->form_validation->set_rules('callingFrom', 'callingFrom', 'trim|required|max_length[49]');
+        try {
+            
+        if( !$this->form_validation->run() ){
+        throw new Exception(validation_errors());
 
-        $eventId=GetNumericData($this->post('eventId'));
+        }
+        
+        $eventId = GetNumericData($this->post('eventId'));
         $eventName = $this->post('eventName');
         $eventStatusId = GetNumericData($this->post('eventStatusId'));
         $venue = $this->post('venue');
@@ -258,88 +329,167 @@ class Events extends MY_Controller {
         $dMCompletedBy = GetNumericData($this->post('dMCompletedBy'));
         $callingFrom = GetNumericData($this->post('callingFrom'));
 
-        $query = $this->db->query("call usp_GetEvents(" . $eventId . ",'" . $eventName . "'," . $eventStatusId . ",'" . $venue . "','" . $guests . "','" . $startDate_From . "','" . $startDate_To . "'," . $userId . "," . $clientId . "," . $dMCompletedBy . "," . $callingFrom . "," . $orderByColumn . "," . $orderAscDesc . "," . $pageLength . "," . $pageIndex . "," . $startingRowNumber . ",@totalRows ,@errorCode);");
-        $result = $query->result();
-//        print_r($result);exit;
-//        print_r($this->db->last_query());exit;
-        if ($result > 0) {
-            $output = [
-                'status' => '1',
-                'Message' => 'Data Retrived Succesfully',
-                'Row count' => count($result),
-                'Responce' => $result,
-            ];
-            $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
-        } else {
+        
+        
+            $query = $this->db->query("call usp_GetEvents(" . $eventId . ",'" . $eventName . "'," . $eventStatusId . ",'" . $venue . "','" . $guests . "','" . $startDate_From . "','" . $startDate_To . "'," . $userId . "," . $clientId . "," . $dMCompletedBy . "," . $callingFrom . "," . $orderByColumn . "," . $orderAscDesc . "," . $pageLength . "," . $pageIndex . "," . $startingRowNumber . ",@totalRows ,@errorCode);");
+//        echo $this->db->last_query();exit;    
+            if (!$query) {
+                $canShowGenericErrorMessageToUser = true;
+                $error = $this->db->error();
+                throw new Exception('Query error:' . $error['code'] . ' ' . $error['message']);
+            } else {
+                $result = $query->result();
+
+//                 print_r($result);exit;
+                if (isset($result[0]->ErrorCode) && $result[0]->ErrorCode > 0) {
+                    if ($result[0]->ErrorCode == 45000) {
+                        // error in DB - CUSTOM MESSAGE
+                        throw new Exception(substr($result[0]->ErrorMessage, strpos($result[0]->ErrorMessage, ":") + 1));
+                    } else {
+                        // error in DB - Generic Message
+                        $canShowGenericErrorMessageToUser = true;
+                        throw new Exception($result[0]->ErrorMessage);
+                    }
+                } else {
+                    // success in DB
+                    $output = [
+                        'status' => '1',
+                        'Message' => 'Data Retrived Succesfully',
+                        'Row count' => count($result),
+                        'Responce' => $result,
+                    ];
+                    $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
+                }
+            }
+        } catch (Exception $e) {
+
+            log_message('error', 'Database:' . $e->getMessage());
+
             $output = [
                 'status' => '0',
-                'Message' => 'No data found',
+                'Message' => $canShowGenericErrorMessageToUser == true ? GENERIC_ERROR_MESSAGE : $e->getMessage(),
                 'Row count' => 0,
                 'Responce' => 0,
             ];
             $this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
         }
     }
-    
+
     public function getEventServices_post() {
+        $canShowGenericErrorMessageToUser = false;
         $this->post = file_get_contents('php://input');
+        $this->form_validation->set_rules('callingFrom', 'callingFrom', 'trim|required|max_length[49]');
+        try {
             
+        if( !$this->form_validation->run() ){
+        throw new Exception(validation_errors());
+
+        }
         $eventId = GetNumericData($this->post('eventId'));
         $userId = $this->user_data->id;
 
 //        $userdata = $this->Main_model->userdata();
         $clientId = GetNumericData($this->post('clientId'));
-       
+
         $callingFrom = GetNumericData($this->post('callingFrom'));
 
-        $query = $this->db->query("call usp_GetEventServices(" . $eventId . "," . $userId . "," . $clientId . "," . $callingFrom . ",@errorCode);");
-        $result = $query->result();
-//        print_r($this->db->last_query());exit;
-        if ($result > 0) {
-            $output = [
-                'status' => '1',
-                'Message' => 'Data Retrived Succesfully',
-                'Row count' => count($result),
-                'Responce' => $result,
-            ];
-            $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
-        } else {
+        
+        
+            $query = $this->db->query("call usp_GetEventServices(" . $eventId . "," . $userId . "," . $clientId . "," . $callingFrom . ",@errorCode);");
+            if (!$query) {
+                $canShowGenericErrorMessageToUser = true;
+                $error = $this->db->error();
+                throw new Exception('Query error:' . $error['code'] . ' ' . $error['message']);
+            } else {
+                $result = $query->result();
+                if (isset($result[0]->ErrorCode) && $result[0]->ErrorCode > 0) {
+                    if ($result[0]->ErrorCode == 45000) {
+                        // error in DB - CUSTOM MESSAGE
+                        throw new Exception(substr($result[0]->ErrorMessage, strpos($result[0]->ErrorMessage, ":") + 1));
+                    } else {
+                        // error in DB - Generic Message
+                        $canShowGenericErrorMessageToUser = true;
+                        throw new Exception($result[0]->ErrorMessage);
+                    }
+                } else {
+                    // success in DB
+                    $output = [
+                        'status' => '1',
+                        'Message' => 'Data Retrived Succesfully',
+                        'Row count' => count($result),
+                        'Responce' => $result,
+                    ];
+                    $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
+                }
+            }
+        } catch (Exception $e) {
+
+            log_message('error', 'Exception:' . $e->getMessage());
+
             $output = [
                 'status' => '0',
-                'Message' => 'No data found',
+                'Message' => $canShowGenericErrorMessageToUser == true ? GENERIC_ERROR_MESSAGE : $e->getMessage(),
                 'Row count' => 0,
                 'Responce' => 0,
             ];
             $this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
         }
     }
-    
-    
+
     public function getEventReleaseReasons_post() {
+        $canShowGenericErrorMessageToUser = false;
+        
         $this->post = file_get_contents('php://input');
-      
-       
+        $this->form_validation->set_rules('callingFrom', 'callingFrom', 'trim|required|max_length[49]');
+        try {
+            
+        if( !$this->form_validation->run() ){
+        throw new Exception(validation_errors());
+
+        }
+
         $eventId = GetNumericData($this->post('eventId'));
         $userId = $this->user_data->id;
 
-       
+
         $callingFrom = GetNumericData($this->post('callingFrom'));
 
-        $query = $this->db->query("call usp_GetEventReleaseReasons(" . $eventId . "," . $userId . "," . $callingFrom . ",@errorCode);");
-        $result = $query->result();
-//        print_r($this->db->last_query());exit;
-        if ($result > 0) {
-            $output = [
-                'status' => '1',
-                'Message' => 'Data Retrived Succesfully',
-                'Row count' => count($result),
-                'Responce' => $result,
-            ];
-            $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
-        } else {
+        
+            $query = $this->db->query("call usp_GetEventReleaseReasons(" . $eventId . "," . $userId . "," . $callingFrom . ",@errorCode);");
+//            echo $this->db->last_query();exit;
+            if (!$query) {
+                $canShowGenericErrorMessageToUser = true;
+                $error = $this->db->error();
+                throw new Exception('Query error:' . $error['code'] . ' ' . $error['message']);
+            } else {
+                $result = $query->result();
+                if (isset($result[0]->ErrorCode) && $result[0]->ErrorCode > 0) {
+                    if ($result[0]->ErrorCode == 45000) {
+                        // error in DB - CUSTOM MESSAGE
+                        throw new Exception(substr($result[0]->ErrorMessage, strpos($result[0]->ErrorMessage, ":") + 1));
+                    } else {
+                        // error in DB - Generic Message
+                        $canShowGenericErrorMessageToUser = true;
+                        throw new Exception($result[0]->ErrorMessage);
+                    }
+                } else {
+                    // success in DB
+                    $output = [
+                        'status' => '1',
+                        'Message' => 'Data Retrived Succesfully',
+                        'Row count' => count($result),
+                        'Responce' => $result,
+                    ];
+                    $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
+                }
+            }
+        } catch (Exception $e) {
+
+            log_message('error', 'Database:' . $e->getMessage());
+
             $output = [
                 'status' => '0',
-                'Message' => 'No data found',
+                'Message' => $canShowGenericErrorMessageToUser == true ? GENERIC_ERROR_MESSAGE : $e->getMessage(),
                 'Row count' => 0,
                 'Responce' => 0,
             ];
@@ -453,21 +603,42 @@ class Events extends MY_Controller {
 
     public function getCompletedEvents_get() {
 
-        $query = $this->db->query("call usp_GetCompletedEventsDataToSendNotifications(@errorCode)");
-        $result = $query->result_array();
+        $canShowGenericErrorMessageToUser = false;
+        try {
+            $query = $this->db->query("call usp_GetCompletedEventsDataToSendNotifications(@errorCode)");
+            if (!$query) {
+                $canShowGenericErrorMessageToUser = true;
+                $error = $this->db->error();
+                throw new Exception('Query error:' . $error['code'] . ' ' . $error['message']);
+            } else {
+                $result = $query->result();
+                if (isset($result[0]->ErrorCode) && $result[0]->ErrorCode > 0) {
+                    if ($result[0]->ErrorCode == 45000) {
+                        // error in DB - CUSTOM MESSAGE
+                        throw new Exception(substr($result[0]->ErrorMessage, strpos($result[0]->ErrorMessage, ":") + 1));
+                    } else {
+                        // error in DB - Generic Message
+                        $canShowGenericErrorMessageToUser = true;
+                        throw new Exception($result[0]->ErrorMessage);
+                    }
+                } else {
+                    // success in DB
+                    $output = [
+                        'status' => '1',
+                        'Message' => 'Data Retrived Succesfully',
+                        'Row count' => count($result),
+                        'Responce' => $result,
+                    ];
+                    $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
+                }
+            }
+        } catch (Exception $e) {
 
-        if ($result > 0) {
-            $output = [
-                'status' => '1',
-                'Message' => 'Data Retrived Succesfully',
-                'Row count' => count($result),
-                'Responce' => $result,
-            ];
-            $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
-        } else {
+            log_message('error', 'Database:' . $e->getMessage());
+
             $output = [
                 'status' => '0',
-                'Message' => 'No data found',
+                'Message' => $canShowGenericErrorMessageToUser == true ? GENERIC_ERROR_MESSAGE : $e->getMessage(),
                 'Row count' => 0,
                 'Responce' => 0,
             ];
@@ -478,72 +649,137 @@ class Events extends MY_Controller {
     public function GetEventDataForReport_post() {
 
 //        $userdata = $this->Main_model->userdata();
-        $eventId=GetNumericData($this->post('eventId'));
-        $query = $this->db->query("call usp_GetEventDataForReport(" . $eventId . ",@errorCode)");
-        $result = $query->result_array();
+        $eventId = GetNumericData($this->post('eventId'));
+        $canShowGenericErrorMessageToUser = false;
+        try {
+            $query = $this->db->query("call usp_GetEventDataForReport(" . $eventId . ",@errorCode)");
+            if (!$query) {
+                $canShowGenericErrorMessageToUser = true;
+                $error = $this->db->error();
+                throw new Exception('Query error:' . $error['code'] . ' ' . $error['message']);
+            } else {
+                $result = $query->result();
+                if (isset($result[0]->ErrorCode) && $result[0]->ErrorCode > 0) {
+                    if ($result[0]->ErrorCode == 45000) {
+                        // error in DB - CUSTOM MESSAGE
+                        throw new Exception(substr($result[0]->ErrorMessage, strpos($result[0]->ErrorMessage, ":") + 1));
+                    } else {
+                        // error in DB - Generic Message
+                        $canShowGenericErrorMessageToUser = true;
+                        throw new Exception($result[0]->ErrorMessage);
+                    }
+                } else {
+                    // success in DB
+                    $output = [
+                        'status' => '1',
+                        'Message' => 'Data Retrived Succesfully',
+                        'Row count' => count($result),
+                        'Responce' => $result,
+                    ];
+                    $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
+                }
+            }
+        } catch (Exception $e) {
 
-        if ($result > 0) {
-            $output = [
-                'status' => '1',
-                'Message' => 'Data Retrived Succesfully',
-                'Row count' => count($result),
-                'Responce' => $result,
-            ];
-            $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
-        } else {
+            log_message('error', 'Database:' . $e->getMessage());
+
             $output = [
                 'status' => '0',
-                'Message' => 'No data found',
+                'Message' => $canShowGenericErrorMessageToUser == true ? GENERIC_ERROR_MESSAGE : $e->getMessage(),
                 'Row count' => 0,
                 'Responce' => 0,
             ];
             $this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
         }
     }
+
     public function GetEventServiceDataForReport_post() {
 
 //        $userdata = $this->Main_model->userdata();
-        $eventId=GetNumericData($this->post('eventId'));
-        $query = $this->db->query("call usp_GetEventServiceDataForReport(" . $eventId . "s,@errorCode)");
-        $result = $query->result_array();
+        $eventId = GetNumericData($this->post('eventId'));
+        $canShowGenericErrorMessageToUser = false;
+        try {
+            $query = $this->db->query("call usp_GetEventServiceDataForReport(" . $eventId . "s,@errorCode)");
+            if (!$query) {
+                $canShowGenericErrorMessageToUser = true;
+                $error = $this->db->error();
+                throw new Exception('Query error:' . $error['code'] . ' ' . $error['message']);
+            } else {
+                $result = $query->result();
+                if (isset($result[0]->ErrorCode) && $result[0]->ErrorCode > 0) {
+                    if ($result[0]->ErrorCode == 45000) {
+                        // error in DB - CUSTOM MESSAGE
+                        throw new Exception(substr($result[0]->ErrorMessage, strpos($result[0]->ErrorMessage, ":") + 1));
+                    } else {
+                        // error in DB - Generic Message
+                        $canShowGenericErrorMessageToUser = true;
+                        throw new Exception($result[0]->ErrorMessage);
+                    }
+                } else {
+                    // success in DB
+                    $output = [
+                        'status' => '1',
+                        'Message' => 'Data Retrived Succesfully',
+                        'Row count' => count($result),
+                        'Responce' => $result,
+                    ];
+                    $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
+                }
+            }
+        } catch (Exception $e) {
 
-        if ($result > 0) {
-            $output = [
-                'status' => '1',
-                'Message' => 'Data Retrived Succesfully',
-                'Row count' => count($result),
-                'Responce' => $result,
-            ];
-            $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
-        } else {
+            log_message('error', 'Database:' . $e->getMessage());
+
             $output = [
                 'status' => '0',
-                'Message' => 'No data found',
+                'Message' => $canShowGenericErrorMessageToUser == true ? GENERIC_ERROR_MESSAGE : $e->getMessage(),
                 'Row count' => 0,
                 'Responce' => 0,
             ];
             $this->set_response($output, REST_Controller::HTTP_BAD_REQUEST);
         }
     }
+
     public function GetEventReleaseDataForReport_post() {
 
 //        $userdata = $this->Main_model->userdata();
-        $eventId=GetNumericData($this->post('eventId'));
-        $query = $this->db->query("call usp_GetEventReleaseDataForReport(" . $eventId . ",@errorCode)");
-        $result = $query->result_array();
+        $eventId = GetNumericData($this->post('eventId'));
+        $canShowGenericErrorMessageToUser = false;
+        try {
+            $query = $this->db->query("call usp_GetEventReleaseDataForReport(" . $eventId . ",@errorCode)");
+            if (!$query) {
+                $canShowGenericErrorMessageToUser = true;
+                $error = $this->db->error();
+                throw new Exception('Query error:' . $error['code'] . ' ' . $error['message']);
+            } else {
+                $result = $query->result();
+                if (isset($result[0]->ErrorCode) && $result[0]->ErrorCode > 0) {
+                    if ($result[0]->ErrorCode == 45000) {
+                        // error in DB - CUSTOM MESSAGE
+                        throw new Exception(substr($result[0]->ErrorMessage, strpos($result[0]->ErrorMessage, ":") + 1));
+                    } else {
+                        // error in DB - Generic Message
+                        $canShowGenericErrorMessageToUser = true;
+                        throw new Exception($result[0]->ErrorMessage);
+                    }
+                } else {
+                    // success in DB
+                    $output = [
+                        'status' => '1',
+                        'Message' => 'Data Retrived Succesfully',
+                        'Row count' => count($result),
+                        'Responce' => $result,
+                    ];
+                    $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
+                }
+            }
+        } catch (Exception $e) {
 
-        if ($result > 0) {
-            $output = [
-                'status' => '1',
-                'Message' => 'Data Retrived Succesfully',
-                'Row count' => count($result),
-                'Responce' => $result,
-            ];
-            $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
-        } else {
+            log_message('error', 'Database:' . $e->getMessage());
+
             $output = [
                 'status' => '0',
-                'Message' => 'No data found',
+                'Message' => $canShowGenericErrorMessageToUser == true ? GENERIC_ERROR_MESSAGE : $e->getMessage(),
                 'Row count' => 0,
                 'Responce' => 0,
             ];

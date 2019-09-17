@@ -114,7 +114,7 @@ class Main_model extends CI_Model {
 // $msg = $this->load->view( 'forgot.php', $data, true );
         $this->load->library('email', config_item('email_config'));
         $this->email->set_newline("\r\n");
-        $this->email->from('jyothi.phpdeveloper@gmail.com'); // change it to yours   'dev@bluenettech.com'
+        $this->email->from('anji.naga1@gmail.com'); // change it to yours   'dev@bluenettech.com'
         $this->email->to($to); // change it to yours rahul.deo@talentserv.co.in
         $this->email->subject($email_subject);
 

@@ -167,7 +167,7 @@ class User extends MY_Controller {
          $canShowGenericErrorMessageToUser = false;
         try {
             $query = $this->db->query("call usp_GetUsers(" . $userId . "," . $clientId . ",'" . $userName . "'," . $roleId . ",@errorCode)");
-            echo $this->db->last_query();exit;
+//            echo $this->db->last_query();exit;
             if (!$query) {
                 $canShowGenericErrorMessageToUser = true;
                 $error   = $this->db->error();

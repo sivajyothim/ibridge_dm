@@ -15,21 +15,43 @@ class Services extends MY_Controller {
 //        $userdata = $this->Main_model->userdata();
         $clientId=GetNumericData($this->post('clientId'));
         $callingFrom=GetNumericData($this->post('callingFrom'));
+         $canShowGenericErrorMessageToUser = false;
+        try {
         $query = $this->db->query("call usp_GetClientServices(" . $this->user_data->id . "," . $clientId . ",". $callingFrom .",@errorCode)");
-        $result = $query->result_array();
+            if (!$query) {
+                $canShowGenericErrorMessageToUser = true;
+                $error   = $this->db->error();
+                throw new Exception('Query error:'.$error['code'].' '.$error['message']);
+            } else {
+                 $result = $query->result();
+                if (isset($result[0]->ErrorCode) && $result[0]->ErrorCode > 0) {
+                    if ($result[0]->ErrorCode == 45000) {
+                        // error in DB - CUSTOM MESSAGE
+                        throw new Exception(substr($result[0]->ErrorMessage, strpos($result[0]->ErrorMessage, ":") + 1));
+                    } else {
+                        // error in DB - Generic Message
+                        $canShowGenericErrorMessageToUser = true;
+                        throw new Exception($result[0]->ErrorMessage);
+                    }
+                } else {
+                    // success in DB
+                        $output = [
+                            'status' => '1',
+                            'Message' => 'Data Retrived Succesfully',
+                            'Row count' => count($result),
+                            'Responce' => $result,
+                        ];
+                        $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
+                     
+                }
+            }
+        } catch (Exception $e) {
 
-        if ($result > 0) {
-            $output = [
-                'status' => '1',
-                'Message' => 'Data Retrived Succesfully',
-                'Row count' => count($result),
-                'Responce' => $result,
-            ];
-            $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
-        } else {
+            log_message('error', 'Database:' . $e->getMessage());
+
             $output = [
                 'status' => '0',
-                'Message' => 'No data found',
+                'Message' => $canShowGenericErrorMessageToUser == true ? GENERIC_ERROR_MESSAGE : $e->getMessage(),
                 'Row count' => 0,
                 'Responce' => 0,
             ];
@@ -39,21 +61,43 @@ class Services extends MY_Controller {
 
     public function getServiceType_get() {
 
+         $canShowGenericErrorMessageToUser = false;
+        try {
         $query = $this->db->query("call usp_GetServiceTypes(@errorCode)");
-        $result = $query->result_array();
+            if (!$query) {
+                $canShowGenericErrorMessageToUser = true;
+                $error   = $this->db->error();
+                throw new Exception('Query error:'.$error['code'].' '.$error['message']);
+            } else {
+                 $result = $query->result();
+                if (isset($result[0]->ErrorCode) && $result[0]->ErrorCode > 0) {
+                    if ($result[0]->ErrorCode == 45000) {
+                        // error in DB - CUSTOM MESSAGE
+                        throw new Exception(substr($result[0]->ErrorMessage, strpos($result[0]->ErrorMessage, ":") + 1));
+                    } else {
+                        // error in DB - Generic Message
+                        $canShowGenericErrorMessageToUser = true;
+                        throw new Exception($result[0]->ErrorMessage);
+                    }
+                } else {
+                    // success in DB
+                        $output = [
+                            'status' => '1',
+                            'Message' => 'Data Retrived Succesfully',
+                            'Row count' => count($result),
+                            'Responce' => $result,
+                        ];
+                        $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
+                     
+                }
+            }
+        } catch (Exception $e) {
 
-        if ($result > 0) {
-            $output = [
-                'status' => '1',
-                'Message' => 'Data Retrived Succesfully',
-                'Row count' => count($result),
-                'Responce' => $result,
-            ];
-            $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
-        } else {
+            log_message('error', 'Database:' . $e->getMessage());
+
             $output = [
                 'status' => '0',
-                'Message' => 'No data found',
+                'Message' => $canShowGenericErrorMessageToUser == true ? GENERIC_ERROR_MESSAGE : $e->getMessage(),
                 'Row count' => 0,
                 'Responce' => 0,
             ];
@@ -68,22 +112,44 @@ class Services extends MY_Controller {
         $serviceTypeId = GetNumericData($this->post('serviceTypeId'));
         $serviceName = $this->post('serviceName');
 
-        $query = $this->db->query("call usp_GetServices(" . $serviceId . "," . $serviceTypeId . ",'" . $serviceName . "',@errorCode)");
 
-        $result = $query->result_array();
+         $canShowGenericErrorMessageToUser = false;
+        try {
+            $query = $this->db->query("call usp_GetServices(" . $serviceId . "," . $serviceTypeId . ",'" . $serviceName . "',@errorCode)");
+            if (!$query) {
+                $canShowGenericErrorMessageToUser = true;
+                $error   = $this->db->error();
+                throw new Exception('Query error:'.$error['code'].' '.$error['message']);
+            } else {
+                 $result = $query->result();
+                if (isset($result[0]->ErrorCode) && $result[0]->ErrorCode > 0) {
+                    if ($result[0]->ErrorCode == 45000) {
+                        // error in DB - CUSTOM MESSAGE
+                        throw new Exception(substr($result[0]->ErrorMessage, strpos($result[0]->ErrorMessage, ":") + 1));
+                    } else {
+                        // error in DB - Generic Message
+                        $canShowGenericErrorMessageToUser = true;
+                        throw new Exception($result[0]->ErrorMessage);
+                    }
+                } else {
+                    // success in DB
+                        $output = [
+                            'status' => '1',
+                            'Message' => 'Data Retrived Succesfully',
+                            'Row count' => count($result),
+                            'Responce' => $result,
+                        ];
+                        $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
+                     
+                }
+            }
+        } catch (Exception $e) {
 
-        if ($result > 0) {
-            $output = [
-                'status' => '1',
-                'Message' => 'Data Retrived Succesfully',
-                'Row count' => count($result),
-                'Responce' => $result,
-            ];
-            $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
-        } else {
+            log_message('error', 'Database:' . $e->getMessage());
+
             $output = [
                 'status' => '0',
-                'Message' => 'No data found',
+                'Message' => $canShowGenericErrorMessageToUser == true ? GENERIC_ERROR_MESSAGE : $e->getMessage(),
                 'Row count' => 0,
                 'Responce' => 0,
             ];
