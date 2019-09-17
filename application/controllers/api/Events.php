@@ -381,10 +381,10 @@ class Events extends MY_Controller {
         $this->form_validation->set_rules('callingFrom', 'callingFrom', 'trim|required|max_length[49]');
         try {
             
-        if( !$this->form_validation->run() ){
-        throw new Exception(validation_errors());
-
-        }
+//        if( !$this->form_validation->run() ){
+//        throw new Exception(validation_errors());
+//
+//        }
         $eventId = GetNumericData($this->post('eventId'));
         $userId = $this->user_data->id;
 
@@ -443,10 +443,10 @@ class Events extends MY_Controller {
         $this->form_validation->set_rules('callingFrom', 'callingFrom', 'trim|required|max_length[49]');
         try {
             
-        if( !$this->form_validation->run() ){
-        throw new Exception(validation_errors());
-
-        }
+//        if( !$this->form_validation->run() ){
+//        throw new Exception(validation_errors());
+//
+//        }
 
         $eventId = GetNumericData($this->post('eventId'));
         $userId = $this->user_data->id;
