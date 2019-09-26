@@ -106,7 +106,7 @@ class Events extends MY_Controller {
         $canShowGenericErrorMessageToUser = false;
         try {
             $query = $this->db->query("call usp_SetEvent(" . $eventId . "," . $userId . "," . $clientId . ",'" . $eventName . "'," . $eventCategoryId . ",'" . $startDateTime . "','" . $endDateTime . "','" . $venue . "','" . $guests . "','" . $speakers . "','" . $participants . "','" . $eventDescription . "'," . $eventStatusId . ",'" . $serviceIdsOpted . "'," . $isSubmitedForDM . ",'" . $eventStatusDescription . "','" . $newStartDateTime . "','" . $newEndDateTime . "','" . $photoUploadedPath . "','" . $videoUploadedPath . "',@errorCode,@errorMessage);");
-//            echo $this->db->last_query();exit;
+            // echo $this->db->last_query();exit;
             $result = $query->result();
 
             if (isset($result[0]->ErrorCode) && $result[0]->ErrorCode > 0) {
@@ -312,9 +312,10 @@ class Events extends MY_Controller {
         $eventStatusId = GetNumericData($this->post('eventStatusId'));
         $venue = $this->post('venue');
         $guests = $this->post('guests');
-        $startDate_From = $this->post('startDate_From');
-        $startDate_To = $this->post('startDate_To');
+        $startDate_From = $this->post('startDate_From') != "" ? "'".$this->post('startDate_From')."'": "NULL";
 
+        $startDate_To = $this->post('startDate_To') != "" ?"'".$this->post('startDate_To')."'":"NULL";
+        // $startDate_To = GetNumericData($this->post('startDate_To'));
         $userId = GetNumericData($this->user_data->id);
 
 //        $userdata = $this->Main_model->userdata();
@@ -331,8 +332,8 @@ class Events extends MY_Controller {
 
         
         
-            $query = $this->db->query("call usp_GetEvents(" . $eventId . ",'" . $eventName . "'," . $eventStatusId . ",'" . $venue . "','" . $guests . "','" . $startDate_From . "','" . $startDate_To . "'," . $userId . "," . $clientId . "," . $dMCompletedBy . "," . $callingFrom . "," . $orderByColumn . "," . $orderAscDesc . "," . $pageLength . "," . $pageIndex . "," . $startingRowNumber . ",@totalRows ,@errorCode);");
-//        echo $this->db->last_query();exit;    
+            $query = $this->db->query("call usp_GetEvents(" . $eventId . ",'" . $eventName . "'," . $eventStatusId . ",'" . $venue . "','" . $guests . "'," . $startDate_From . "," . $startDate_To . "," . $userId . "," . $clientId . "," . $dMCompletedBy . "," . $callingFrom . "," . $orderByColumn . "," . $orderAscDesc . "," . $pageLength . "," . $pageIndex . "," . $startingRowNumber . ",@totalRows ,@errorCode);");
+        // echo $this->db->last_query();exit;    
             if (!$query) {
                 $canShowGenericErrorMessageToUser = true;
                 $error = $this->db->error();
