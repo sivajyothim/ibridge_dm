@@ -126,10 +126,15 @@ class Main_model extends CI_Model {
 
         $this->email->message($email_body);
         if ($this->email->send()) {
+            $str=200;
+            return $str;
 // echo 'Email sent.';
-            return true;
+//            return true;
         } else {
-            show_error($this->email->print_debugger());
+            $str=500;
+            return $str;
+//            return $this->email->print_debugger();
+//            show_error($this->email->print_debugger());
         }
 
 // }
