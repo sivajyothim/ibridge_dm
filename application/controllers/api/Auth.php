@@ -31,8 +31,8 @@ class Auth extends MY_Controller {
         $canShowGenericErrorMessageToUser=false;
         try 
         {
-            $query = $this->db->query("CALL usp_AuthenticateUser('".$u."','".$p."',@errorCode,@erroMessage)");
-        
+            $query = $this->db->query("CALL usp_AuthenticateUser_Temp('".$u."','".$p."',@errorCode,@errorMessage)");
+//            $this->db->last_query();
             $result = $query->result();
 //            print_r($result);exit;
             if(isset($result[0]->ErrorCode))
@@ -60,7 +60,8 @@ class Auth extends MY_Controller {
             $date = new DateTime();
             $token['iat'] = $date->getTimestamp();
             $token['exp'] = $date->getTimestamp() + 60*60*5; //To here is to generate token
-           
+            $token['RoleId']=$result[0]->RoleId;
+            $token['ClientId']=$result[0]->ClientId;
             $token = JWT::encode($token,$kunci ); //This is the output token
             $output=[
                 'status' => '1',
