@@ -301,39 +301,39 @@ class Events extends MY_Controller {
 //       print_r($this->post);exit;
         $this->form_validation->set_rules('callingFrom', 'callingFrom', 'required');
         try {
-            
+
 //        if( ! $this->form_validation->run() ){
 //        throw new Exception(validation_errors());
 //
 //        }
 //        exit;
-        $eventId = GetNumericData($this->post('eventId'));
-        $eventName = $this->post('eventName');
-        $eventStatusId = GetNumericData($this->post('eventStatusId'));
-        $venue = $this->post('venue');
-        $guests = $this->post('guests');
-        $startDate_From = $this->post('startDate_From') != "" ? "'".$this->post('startDate_From')."'": "NULL";
+            $eventId = GetNumericData($this->post('eventId'));
+            $eventName = $this->post('eventName');
+            $eventStatusId = GetNumericData($this->post('eventStatusId'));
+            $venue = $this->post('venue');
+            $guests = $this->post('guests');
+            $startDate_From = $this->post('startDate_From') != "" ? "'" . $this->post('startDate_From') . "'" : "NULL";
 
-        $startDate_To = $this->post('startDate_To') != "" ?"'".$this->post('startDate_To')."'":"NULL";
-        // $startDate_To = GetNumericData($this->post('startDate_To'));
-        $userId = GetNumericData($this->user_data->id);
+            $startDate_To = $this->post('startDate_To') != "" ? "'" . $this->post('startDate_To') . "'" : "NULL";
+            // $startDate_To = GetNumericData($this->post('startDate_To'));
+            $userId = GetNumericData($this->user_data->id);
 
 //        $userdata = $this->Main_model->userdata();
-        $clientId = GetNumericData($this->post('clientId'));
-        $orderByColumn = GetNumericData($this->post('orderByColumn'));
-        $orderAscDesc = GetNumericData($this->post('orderAscDesc'));
+            $clientId = GetNumericData($this->post('clientId'));
+            $orderByColumn = GetNumericData($this->post('orderByColumn'));
+            $orderAscDesc = GetNumericData($this->post('orderAscDesc'));
 
-        $pageLength = GetNumericData($this->post('pageLength'));
-        $pageIndex = GetNumericData($this->post('pageIndex'));
+            $pageLength = GetNumericData($this->post('pageLength'));
+            $pageIndex = GetNumericData($this->post('pageIndex'));
 
-        $startingRowNumber = 1;
-        $dMCompletedBy = GetNumericData($this->post('dMCompletedBy'));
-        $callingFrom = GetNumericData($this->post('callingFrom'));
+            $startingRowNumber = 1;
+            $dMCompletedBy = GetNumericData($this->post('dMCompletedBy'));
+            $callingFrom = GetNumericData($this->post('callingFrom'));
 
-        
-        
+
+
             $query = $this->db->query("call usp_GetEvents(" . $eventId . ",'" . $eventName . "'," . $eventStatusId . ",'" . $venue . "','" . $guests . "'," . $startDate_From . "," . $startDate_To . "," . $userId . "," . $clientId . "," . $dMCompletedBy . "," . $callingFrom . "," . $orderByColumn . "," . $orderAscDesc . "," . $pageLength . "," . $pageIndex . "," . $startingRowNumber . ",@totalRows ,@errorCode);");
-        // echo $this->db->last_query();exit;    
+            // echo $this->db->last_query();exit;    
             if (!$query) {
                 $canShowGenericErrorMessageToUser = true;
                 $error = $this->db->error();
@@ -381,21 +381,29 @@ class Events extends MY_Controller {
         $this->post = file_get_contents('php://input');
         $this->form_validation->set_rules('callingFrom', 'callingFrom', 'trim|required|max_length[49]');
         try {
-            
+
 //        if( !$this->form_validation->run() ){
 //        throw new Exception(validation_errors());
 //
 //        }
-        $eventId = GetNumericData($this->post('eventId'));
-        $userId = $this->user_data->id;
+            $eventId = GetNumericData($this->post('eventId'));
+            $userId = $this->user_data->id;
 
 //        $userdata = $this->Main_model->userdata();
-        $clientId = GetNumericData($this->post('clientId'));
+            $roleId = $this->user_data->RoleId;
 
-        $callingFrom = GetNumericData($this->post('callingFrom'));
+            if ($roleId == 2) {
+                $clientId = $this->user_data->ClientId;
+            } else {
+                $clientId = "NULL";
+            }
 
-        
-        
+//        $clientId = GetNumericData($this->post('clientId'));
+
+            $callingFrom = GetNumericData($this->post('callingFrom'));
+
+
+
             $query = $this->db->query("call usp_GetEventServices(" . $eventId . "," . $userId . "," . $clientId . "," . $callingFrom . ",@errorCode);");
             if (!$query) {
                 $canShowGenericErrorMessageToUser = true;
@@ -439,23 +447,23 @@ class Events extends MY_Controller {
 
     public function getEventReleaseReasons_post() {
         $canShowGenericErrorMessageToUser = false;
-        
+
         $this->post = file_get_contents('php://input');
         $this->form_validation->set_rules('callingFrom', 'callingFrom', 'trim|required|max_length[49]');
         try {
-            
+
 //        if( !$this->form_validation->run() ){
 //        throw new Exception(validation_errors());
 //
 //        }
 
-        $eventId = GetNumericData($this->post('eventId'));
-        $userId = $this->user_data->id;
+            $eventId = GetNumericData($this->post('eventId'));
+            $userId = $this->user_data->id;
 
 
-        $callingFrom = GetNumericData($this->post('callingFrom'));
+            $callingFrom = GetNumericData($this->post('callingFrom'));
 
-        
+
             $query = $this->db->query("call usp_GetEventReleaseReasons(" . $eventId . "," . $userId . "," . $callingFrom . ",@errorCode);");
 //            echo $this->db->last_query();exit;
             if (!$query) {

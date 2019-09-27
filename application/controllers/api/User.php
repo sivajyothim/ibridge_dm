@@ -106,7 +106,13 @@ class User extends MY_Controller {
     public function getClients_post() {
         $userId = $this->user_data->id;
 //        $userdata = $this->Main_model->userdata();
-        $clientId = GetNumericData($this->post('clientId'));
+       if (!empty($this->post('clientId'))) {
+            $clientId = GetNumericData($this->post('clientId'));
+        } else {
+            $clientId = "NULL";
+        }
+//        echo $clientsId;exit;
+//        $clientId = GetNumericData($this->post('clientId'));
         $clientName = $this->post('clientName');
         //////
          $canShowGenericErrorMessageToUser = false;
@@ -273,8 +279,10 @@ class User extends MY_Controller {
 
     public function manageClient_post() {
         $this->post = file_get_contents('php://input');
-
-        $clentId = GetNumericData($this->post('clientId'));
+        
+       
+//        echo $clientsId;exit;
+//        $clentId = GetNumericData($this->post('clientId'));
         $clientName = $this->post('clientName');
         $contactNumber = $this->post('contactNo');
         $email = $this->post('email');
@@ -293,7 +301,7 @@ class User extends MY_Controller {
 
         $canShowGenericErrorMessageToUser = false;
         try {
-            $query = $this->db->query("call usp_SetClient(" . $clentId . ",'" . $clientName . "', '" . $contactNumber . "', '" . $email . "','" . $websiteUrl . "','" . $facebookURL . "','" . $youtubeURL . "','" . $instagramURL . "','" . $twitterURL . "','" . $pinterestURL . "','" . $linkedInURL . "'," . $active . ",'" . $serviceIdsOpted . "'," . $userId . " ,@errorCode,@errorMessage);");
+            $query = $this->db->query("call usp_SetClient(" . $clientId . ",'" . $clientName . "', '" . $contactNumber . "', '" . $email . "','" . $websiteUrl . "','" . $facebookURL . "','" . $youtubeURL . "','" . $instagramURL . "','" . $twitterURL . "','" . $pinterestURL . "','" . $linkedInURL . "'," . $active . ",'" . $serviceIdsOpted . "'," . $userId . " ,@errorCode,@errorMessage);");
 //        echo $this->db->last_query();exit;
             $result = $query->result();
 
