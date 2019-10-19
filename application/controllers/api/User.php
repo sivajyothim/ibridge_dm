@@ -10,7 +10,9 @@ class User extends MY_Controller {
         $this->auth();
         $this->load->model('Main_model');
     }
-
+    public function test_get(){
+        echo utcToConvertTime();
+}
     public function userData_get() {
         $userId = $this->user_data->id;
 
@@ -219,8 +221,17 @@ class User extends MY_Controller {
         $this->post = file_get_contents('php://input');
 
         $userId = GetNumericData($this->post('userId'));
-        $roleId = GetNumericData($this->post('roleId'));
-        $clientId = GetNumericData($this->post('clientId'));
+//        $roleId = GetNumericData($this->post('roleId'));
+        if($roleId=="dmExcutive"){
+            $clientId="NULL";
+        }
+        elseif($roleId=="clientCordinator"){
+            $clientId = GetNumericData($this->post('clientId'));
+        }
+        else{
+            $clientId="NULL";
+        }
+//        $clientId = GetNumericData($this->post('clientId'));
         $name = $this->post('name');
         $contactNumber = $this->post('contactNumber');
         $email = $this->post('email');
@@ -283,6 +294,14 @@ class User extends MY_Controller {
        
 //        echo $clientsId;exit;
 //        $clentId = GetNumericData($this->post('clientId'));
+        $roleId = $this->user_data->RoleId;
+        $clientId=$this->user_data->ClientId;
+        if($roleId==1){
+            $clineId="NULL";
+            }
+            else{
+                $clentId = GetNumericData($this->post('clientId'));
+            }
         $clientName = $this->post('clientName');
         $contactNumber = $this->post('contactNo');
         $email = $this->post('email');

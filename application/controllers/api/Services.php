@@ -14,6 +14,8 @@ class Services extends MY_Controller {
 
 //        $userdata = $this->Main_model->userdata();
         $roleId = $this->user_data->RoleId;
+       
+        
         if ($roleId == 2) {
             $clientId = $this->user_data->ClientId;
         } elseif (!empty($this->post('clientId'))) {

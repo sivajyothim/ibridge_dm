@@ -33,13 +33,24 @@ function search_revisions($dataArray, $search_value, $key_to_search, $other_matc
     return $keys;
 }
 
-function GetNumericData($value){
-    $returnVal= "NULL";
-   if(trim($value) != ""){
-       $returnVal=(int)($value);
-   } 
-   return $returnVal;
+function GetNumericData($value) {
+    $returnVal = "NULL";
+    if (trim($value) != "") {
+        $returnVal = (int) ($value);
+    }
+    return $returnVal;
 }
 
+function convert_utc_time($datetime) {
 
+//    $datetime = "2019-09-29 18:00:00";
+    $datetime = date("y-m-d h:i:s", strtotime($datetime));
+    $given = new DateTime($datetime, new DateTimeZone("Asia/Kolkata"));
+    $given->setTimezone(new DateTimeZone("UTC"));
+    $output = $given->format("Y-m-d h:i:s");
+    return $output;
+}
 
+function utcToConvertTime() {
+    
+}

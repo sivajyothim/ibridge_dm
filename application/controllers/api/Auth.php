@@ -25,6 +25,7 @@ class Auth extends MY_Controller {
         
         $u = $this->post('username'); //Username Posted
         $p = $this->post('password'); //Pasword Posted
+        $userTimeZone = $this->post('offset'); //ist/utc/est/
         
         $kunci = $this->config->item('thekey');
         
@@ -62,6 +63,8 @@ class Auth extends MY_Controller {
             $token['exp'] = $date->getTimestamp() + 60*60*5; //To here is to generate token
             $token['RoleId']=$result[0]->RoleId;
             $token['ClientId']=$result[0]->ClientId;
+            $token['userTimeZone']=$userTimeZone;
+            
             $token = JWT::encode($token,$kunci ); //This is the output token
             $output=[
                 'status' => '1',

@@ -57,6 +57,7 @@ class Events extends MY_Controller {
     }
 
     public function manageEvent_post() {
+        
         $this->post = file_get_contents('php://input');
 
         $eventId = GetNumericData($this->post('eventId'));
@@ -65,12 +66,18 @@ class Events extends MY_Controller {
         $userId = $this->user_data->id;
 
 //        $userdata = $this->Main_model->userdata();
+        $roleId = $this->user_data->RoleId;
+     
+        if ($roleId == 2) {
+            $clientId = $this->user_data->ClientId;
+        } 
+        else{
         $clientId = GetNumericData($this->post('clientId'));
-
+        }
         $eventName = $this->post('eventName');
         $eventCategoryId = GetNumericData($this->post('eventCategoryId'));
-        $startDateTime = $this->post('startDateTime');
-        $endDateTime = $this->post('endDateTime');
+        $startDateTime = convert_utc_time($this->post('startDateTime'));
+        $endDateTime = convert_utc_time($this->post('endDateTime'));
         $venue = $this->post('venue');
         $guests = $this->post('guests');
         $speakers = $this->post('speakers');
@@ -106,7 +113,7 @@ class Events extends MY_Controller {
         $canShowGenericErrorMessageToUser = false;
         try {
             $query = $this->db->query("call usp_SetEvent(" . $eventId . "," . $userId . "," . $clientId . ",'" . $eventName . "'," . $eventCategoryId . ",'" . $startDateTime . "','" . $endDateTime . "','" . $venue . "','" . $guests . "','" . $speakers . "','" . $participants . "','" . $eventDescription . "'," . $eventStatusId . ",'" . $serviceIdsOpted . "'," . $isSubmitedForDM . ",'" . $eventStatusDescription . "','" . $newStartDateTime . "','" . $newEndDateTime . "','" . $photoUploadedPath . "','" . $videoUploadedPath . "',@errorCode,@errorMessage);");
-            // echo $this->db->last_query();exit;
+//             echo $this->db->last_query();exit;
             $result = $query->result();
 
             if (isset($result[0]->ErrorCode) && $result[0]->ErrorCode > 0) {
@@ -203,6 +210,14 @@ class Events extends MY_Controller {
         $event_name = $this->post('eventName');
 
 //        $userdata = $this->Main_model->userdata();
+        $roleId = $this->user_data->RoleId;
+        if($roleId == 2 || $roleId== 4){
+            $clientId = $this->user_data->ClientId;
+        } 
+        else{
+           $sclientId = GetNumericData($this->post('clientId'));
+        }
+        
         $clientId = GetNumericData($this->post('clientId'));
         $canShowGenericErrorMessageToUser = false;
         try {
@@ -251,8 +266,15 @@ class Events extends MY_Controller {
     public function eventSummary_post() {
 
 //        $userdata = $this->Main_model->userdata();
-        $clientId = GetNumericData($this->post('clientId'));
+//        $clientId = GetNumericData($this->post('clientId'));
         $canShowGenericErrorMessageToUser = false;
+        $roleId = $this->user_data->RoleId;
+        if($roleId==2 || $roleId==4){
+            $clientId = $this->user_data->ClientId;
+            }
+            else{
+               $clientId="NULL"; 
+            }
         try {
             $query = $this->db->query("call usp_GetEventsSummary(" . $this->user_data->id . "," . $clientId . ",@errorCode)");
             if (!$query) {
@@ -300,6 +322,9 @@ class Events extends MY_Controller {
         $this->post = file_get_contents('php://input');
 //       print_r($this->post);exit;
         $this->form_validation->set_rules('callingFrom', 'callingFrom', 'required');
+        
+        
+        
         try {
 
 //        if( ! $this->form_validation->run() ){
@@ -333,7 +358,7 @@ class Events extends MY_Controller {
 
 
             $query = $this->db->query("call usp_GetEvents(" . $eventId . ",'" . $eventName . "'," . $eventStatusId . ",'" . $venue . "','" . $guests . "'," . $startDate_From . "," . $startDate_To . "," . $userId . "," . $clientId . "," . $dMCompletedBy . "," . $callingFrom . "," . $orderByColumn . "," . $orderAscDesc . "," . $pageLength . "," . $pageIndex . "," . $startingRowNumber . ",@totalRows ,@errorCode);");
-            // echo $this->db->last_query();exit;    
+        // echo $this->db->last_query();exit;    
             if (!$query) {
                 $canShowGenericErrorMessageToUser = true;
                 $error = $this->db->error();
@@ -341,7 +366,7 @@ class Events extends MY_Controller {
             } else {
                 $result = $query->result();
 
-//                 print_r($result);exit;
+//                 var_dump($eventId);exit;
                 if (isset($result[0]->ErrorCode) && $result[0]->ErrorCode > 0) {
                     if ($result[0]->ErrorCode == 45000) {
                         // error in DB - CUSTOM MESSAGE
@@ -356,8 +381,9 @@ class Events extends MY_Controller {
                     $output = [
                         'status' => '1',
                         'Message' => 'Data Retrived Succesfully',
-                        'Row count' => count($result),
+                        'Row count' => $eventId == "NULL" ?$result[0]->TotalRows:count($result),
                         'Responce' => $result,
+                       
                     ];
                     $this->set_response($output, REST_Controller::HTTP_OK); //This is the respon if success
                 }
@@ -391,7 +417,6 @@ class Events extends MY_Controller {
 
 //        $userdata = $this->Main_model->userdata();
             $roleId = $this->user_data->RoleId;
-
             if ($roleId == 2) {
                 $clientId = $this->user_data->ClientId;
             } else {
@@ -513,14 +538,15 @@ class Events extends MY_Controller {
 
 
 //        $userdata = $this->Main_model->userdata();
-        $clientId = GetNumericData($this->post('clientId'));
+//        $clientId = GetNumericData($this->post('clientId'));
+        $clientId = "NULL";
         $eventStatusId = GetNumericData($this->post('eventStatusId'));
         $eventServiceIdsAndData = $this->post('eventServiceIdsAndData'); //1~@~2~@~dmcheck#@#1~@~3~@~dmcheck
 
         $eventName = $this->post('eventName');
         $eventCategoryId = GetNumericData($this->post('eventCategoryId'));
-        $startDateTime = $this->post('startDateTime');
-        $endDateTime = $this->post('endDateTime');
+        $startDateTime = convert_utc_time($this->post('startDateTime'));
+        $endDateTime = convert_utc_time($this->post('endDateTime'));
         $venue = $this->post('venue');
         $guests = $this->post('guests');
         $speakers = $this->post('speakers');
