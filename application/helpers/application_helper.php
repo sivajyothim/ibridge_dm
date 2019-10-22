@@ -41,16 +41,21 @@ function GetNumericData($value) {
     return $returnVal;
 }
 
-function convert_utc_time($datetime) {
+function userTimeToUtc($datetime,$user_offset=null) {
 
 //    $datetime = "2019-09-29 18:00:00";
     $datetime = date("y-m-d h:i:s", strtotime($datetime));
-    $given = new DateTime($datetime, new DateTimeZone("Asia/Kolkata"));
+    $given = new DateTime($datetime, new DateTimeZone($user_offset));
     $given->setTimezone(new DateTimeZone("UTC"));
-    $output = $given->format("Y-m-d h:i:s");
-    return $output;
+    $output = $given->format("Y-m-d H:i:s");
+    return $output; //2019-09-29 12:30:00
 }
 
-function utcToConvertTime() {
-    
+function utcToUserTime($datetime,$user_offset=null) {
+    //    $datetime = "2019-09-29 00:30:00";
+    $datetime = date("y-m-d h:i:s", strtotime($datetime));
+    $given = new DateTime($datetime, new DateTimeZone("UTC"));
+    $given->setTimezone(new DateTimeZone($user_offset));
+    $output = $given->format("Y-m-d H:i:s");
+    return $output;
 }

@@ -9,7 +9,10 @@ class Events extends MY_Controller {
         parent::__construct();
         $this->auth();
     }
-
+    public function test_get(){
+        echo userTimeToUtc("2019-09-29 18:00:00",$this->user_data->userTimeZone);
+        echo "<br/>". utcToUserTime("2019-09-29 00:30:00","Asia/Kolkata");
+    }
     public function eventCategories_get() {
 
 
@@ -76,8 +79,8 @@ class Events extends MY_Controller {
         }
         $eventName = $this->post('eventName');
         $eventCategoryId = GetNumericData($this->post('eventCategoryId'));
-        $startDateTime = convert_utc_time($this->post('startDateTime'));
-        $endDateTime = convert_utc_time($this->post('endDateTime'));
+        $startDateTime = userTimeToUtc($this->post('startDateTime'),$this->user_data->userTimeZone);
+        $endDateTime = userTimeToUtc($this->post('endDateTime'),$this->user_data->userTimeZone);
         $venue = $this->post('venue');
         $guests = $this->post('guests');
         $speakers = $this->post('speakers');
@@ -545,8 +548,8 @@ class Events extends MY_Controller {
 
         $eventName = $this->post('eventName');
         $eventCategoryId = GetNumericData($this->post('eventCategoryId'));
-        $startDateTime = convert_utc_time($this->post('startDateTime'));
-        $endDateTime = convert_utc_time($this->post('endDateTime'));
+        $startDateTime = userTimeToUtc($this->post('startDateTime'),$this->user_data->userTimeZone);
+        $endDateTime = userTimeToUtc($this->post('endDateTime'),$this->user_data->userTimeZone);
         $venue = $this->post('venue');
         $guests = $this->post('guests');
         $speakers = $this->post('speakers');

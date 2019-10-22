@@ -32,7 +32,7 @@ class Auth extends MY_Controller {
         $canShowGenericErrorMessageToUser=false;
         try 
         {
-            $query = $this->db->query("CALL usp_AuthenticateUser_Temp('".$u."','".$p."',@errorCode,@errorMessage)");
+            $query = $this->db->query("CALL usp_AuthenticateUser('".$u."','".$p."',@errorCode,@errorMessage)");
 //            $this->db->last_query();
             $result = $query->result();
 //            print_r($result);exit;
